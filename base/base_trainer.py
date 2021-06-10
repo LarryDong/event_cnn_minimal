@@ -35,7 +35,7 @@ class BaseTrainer:
             assert self.mnt_mode in ['min', 'max']
 
             self.mnt_best = inf if self.mnt_mode == 'min' else -inf
-            self.early_stop = cfg_trainer.get('early_stop', inf)
+            self.early_stop = cfg_trainer.get('early_stop', inf)    # Python字典get()函数返回指定键的值。第二个是默认值
 
         self.start_epoch = 1
 
@@ -56,8 +56,9 @@ class BaseTrainer:
         :param epoch: Current epoch number
         """
         raise NotImplementedError
+        # 在面向对象编程中，父类中可以预留一个接口不实现，要求在子类中实现。如果一定要子类中实现该方法，可以使用raise NotImplementedError报错。
 
-    def add_dict(self, result, epoch):
+    def add_dict(self, result, epoch):          # 在每次train后调用，保存result和次数编号
         for k, v in result.items():
             if v == 0:
                 continue
@@ -67,7 +68,7 @@ class BaseTrainer:
                 k = f'{k[4:]}/valid'
             else:
                 k += '/train'
-            self.writer.writer.add_scalar(f'epoch_{k}', v, global_step=epoch)
+            self.writer.writer.add_scalar(f'epoch_{k}', v, global_step=epoch)   # 将我们所需要的数据保存在文件里面供可视化使用
 
     def train(self):
         """
@@ -78,22 +79,22 @@ class BaseTrainer:
             result = self._train_epoch(epoch)
             self.add_dict(result, epoch)
 
-            # save logged informations into log dict
+            # save logged information into log dict
             log = {'epoch': epoch}
-            log.update(result)
+            log.update(result)              # SEARCH:
 
-            # print logged informations to the screen
+            # print logged information to the screen
             for key, value in log.items():
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
 
             # evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False
-            if self.mnt_mode != 'off':
+            if self.mnt_mode != 'off':      # mnt: monitor
                 try:
                     # check whether model performance improved or not, according to specified metric(mnt_metric)
                     improved = (self.mnt_mode == 'min' and log[self.mnt_metric] <= self.mnt_best) or \
                                (self.mnt_mode == 'max' and log[self.mnt_metric] >= self.mnt_best)
-                except KeyError:
+                except KeyError:            # KeyError: 字典查找的Error
                     self.logger.warning("Warning: Metric '{}' is not found. "
                                         "Model performance monitoring is disabled.".format(self.mnt_metric))
                     self.mnt_mode = 'off'
@@ -156,10 +157,9 @@ class BaseTrainer:
             torch.save(state, best_path)
             self.logger.info("Saving current best: model_best.pth ...")
 
-    def _resume_checkpoint(self, resume_path, reset_monitor_best=False):
+    def _resume_checkpoint(self, resume_path, reset_monitor_best=False):    # resume (verb) 恢复，重新开始
         """
         Resume from saved checkpoints
-
         :param resume_path: Checkpoint path to be resumed
         """
         resume_path = str(resume_path)

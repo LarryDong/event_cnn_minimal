@@ -1,5 +1,6 @@
 from torch.utils.data import DataLoader
 # local modules
+# .xxx 是“相对导入”，避免Python导入默认的path和package中名称冲突
 from .dataset import DynamicH5Dataset, MemMapDataset, SequenceDataset
 from utils.data import concatenate_subfolders, concatenate_datasets
 

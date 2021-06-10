@@ -179,6 +179,7 @@ def setup_output_folder(output_folder):
 class MetricTracker:
     def __init__(self, *keys, writer=None):
         self.writer = writer
+        # 创建一个pd DataFrame，index是row labels， columns是每列的（索引）名称
         self._data = pd.DataFrame(index=keys, columns=['total', 'counts', 'average'])
         self.reset()
         

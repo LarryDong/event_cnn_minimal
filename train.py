@@ -5,7 +5,7 @@ import numpy as np
 import data_loader.data_loaders as module_data
 import model.loss as module_loss
 import model.model as module_arch
-from parse_config import ConfigParser
+from parse_config import ConfigParser       # 自己定义的模块
 from trainer import Trainer
 
 
@@ -16,6 +16,8 @@ torch.backends.cudnn.deterministic = True
 torch.backends.cudnn.benchmark = False
 np.random.seed(SEED)
 
+
+# TODO: 这个函数没有搞清楚在哪里被调用。
 def load_model(args, checkpoint=None, config=None):
     """
     negative voxel indicates a model trained on negative voxels -.-
@@ -49,6 +51,7 @@ def load_model(args, checkpoint=None, config=None):
         print('Loaded ColorNet')
     return model
 
+
 def main(config):
     logger = config.get_logger('train')
 
@@ -57,19 +60,20 @@ def main(config):
     valid_data_loader = config.init_obj('valid_data_loader', module_data)
 
     # build model architecture, then print to console
-    model = config.init_obj('arch', module_arch)
+    # 用module_arch初始化 config 中的'arch'参数， 命名为model。module_arch是自己定义的
+    model = config.init_obj('arch', module_arch)    # arch:architecture
     logger.info(model)
 
     # init loss classes
     loss_ftns = [getattr(module_loss, loss)(**kwargs) for loss, kwargs in config['loss_ftns'].items()]
 
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())
+    trainable_params = filter(lambda p: p.requires_grad, model.parameters())        # filter(func, iter), 保留可迭代器iter中满足func的对象
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
 
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
-    trainer = Trainer(model, loss_ftns, optimizer,
+    trainer = Trainer(model, loss_ftns, optimizer,          # TODO:
                       config=config,
                       data_loader=data_loader,
                       valid_data_loader=valid_data_loader,
@@ -80,17 +84,13 @@ def main(config):
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default=None, type=str,
-                      help='config file path (default: None)')
-    args.add_argument('-r', '--resume', default=None, type=str,
-                      help='path to latest checkpoint (default: None)')
-    args.add_argument('-d', '--device', default=None, type=str,
-                      help='indices of GPUs to enable (default: all)')
-    args.add_argument('--limited_memory', default=False, action='store_true',
-                      help='prevent "too many open files" error by setting pytorch multiprocessing to "file_system".')
+    args.add_argument('-c', '--config', default=None, type=str, help='config file path (default: None)')
+    args.add_argument('-r', '--resume', default=None, type=str, help='path to latest checkpoint (default: None)')
+    args.add_argument('-d', '--device', default=None, type=str, help='indices of GPUs to enable (default: all)')
+    args.add_argument('--limited_memory', default=False, action='store_true', help='prevent "too many open files" error by setting pytorch multiprocessing to "file_system".')
 
     # custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')  # namedtuple: 利用别名访问tuple元素，依次是 falgs/type/target
     options = [
         CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
         CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size'),

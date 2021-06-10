@@ -1,0 +1,34 @@
+
+记录代码学习：
+
+关注 model 文件夹路径
+    1. 其中的model定义了具体的model，并在main的load_model中初始化了model，传给了Trainer
+    
+
+base_trainer中定义了：
+    1. train方法，调用_train_epoch，并做记录保存
+    2. 而_train_epoch并没有具体实现，需要子类进行实现。
+
+trainer：
+    1. 继承了base的train，并没有进一步添加新的内容
+    2. 但定义了 _train_epoch 的具体方法
+
+
+learn python:
+
+add_argument:
+-default: 不指定参数的默认值
+-name/flags: -f / --foo
+-type: 命令行参数转化成的类型
+-help：显示的帮助信息
+-dest：解析后的参数名称
+
+
+parse：做句法分析
+
+Python 字典(Dictionary) get() 函数返回指定键的值。
+dict.get(key, default=None)
+default -- 如果指定键的值不存在时，返回该默认值。
+
+args: arguments
+kwargs: key-word arguments

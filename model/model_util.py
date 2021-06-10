@@ -97,8 +97,7 @@ def format_power(size):
 
 def recursive_clone(tensor):
     """
-    Assumes tensor is a torch.tensor with 'clone()' method, possibly
-    inside nested iterable.
+    Assumes tensor is a torch.tensor with 'clone()' method, possibly inside nested iterable.
     E.g., tensor = [(pytorch_tensor, pytorch_tensor), ...]
     """
     if hasattr(tensor, 'clone'):

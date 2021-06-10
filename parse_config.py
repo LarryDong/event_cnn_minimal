@@ -1,6 +1,6 @@
 import os
 import logging
-from pathlib import Path
+from pathlib import Path        # pathlib: Object-oriented filesystem paths
 from functools import reduce, partial
 from operator import getitem
 from datetime import datetime
@@ -27,8 +27,8 @@ class ConfigParser:
 
         exper_name = self.config['name']
         if run_id is None: # use timestamp as default run-id
-            run_id = datetime.now().strftime(r'%m%d_%H%M%S')
-        self._save_dir = save_dir / 'models' / exper_name / run_id
+            run_id = datetime.now().strftime(r'%m%d_%H%M%S')       # 接收间元组，并返回以可读字符串表示的当地时间，格式由参数format 决定。
+        self._save_dir = save_dir / 'models' / exper_name / run_id  # ASK: / 是啥意思
         self._log_dir = save_dir / 'log' / exper_name / run_id
 
         # make directory for saving checkpoints and log.
@@ -47,7 +47,7 @@ class ConfigParser:
             2: logging.DEBUG
         }
 
-    @classmethod
+    @classmethod                # classmethod修饰符对应的函数不需要实例化，不需要 self 参数，但第一个参数需要是表示自身类的cls参数，可以来调用类的属性，类的方法，实例化对象等。
     def from_args(cls, args, options=''):
         """
         Initialize this class from some cli arguments. Used in train, test.
@@ -86,7 +86,7 @@ class ConfigParser:
         is equivalent to
         `object = module.name(a, b=1)`
         """
-        module_name = self[name]['type']
+        module_name = self[name]['type']        # ASK: [] 是什么意思。这里的self？
         module_args = dict(self[name]['args'])
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
         module_args.update(kwargs)
@@ -119,6 +119,8 @@ class ConfigParser:
         return logger
 
     # setting read-only attributes
+    # 关于 property:  由于python进行属性的定义时，没办法设置私有属性，因此要通过@property的方法来进行设置。这样可以隐藏属性名，让用户进行使用的时候无法随意修改。
+    # 访问时不需要加括号()，即可当作成员函数进行访问
     @property
     def config(self):
         return self._config

@@ -86,16 +86,18 @@ class WFlowNet(BaseModel):
         self.num_bins = unet_kwargs['num_bins']  # legacy
         self.num_encoders = unet_kwargs['num_encoders']  # legacy
         self.wnet = WNet(unet_kwargs)
-
+    
     def reset_states(self):
         self.wnet.states = [None] * self.wnet.num_encoders
 
+    # 通过@property我们实现了在读取类属性前对数据进行预处理，那么我们能不能在数据从外部存入类属性前对数据进行预处理呢？
+    # 注意：@*.setter装饰器必须在@property装饰器的后面，且两个被修饰的函数的名称必须保持一致，* 即为函数名称。
     @property
     def states(self):
         return copy_states(self.wnet.states)
 
     @states.setter
-    def states(self, states):
+    def states(self, states):           # ASK: 为什么不能直接
         self.wnet.states = states
 
     def forward(self, event_tensor):
@@ -162,7 +164,7 @@ class FlowNetNoRecur(BaseModel):
         return output_dict
 
 
-class E2VIDRecurrent(BaseModel):
+class E2VIDRecurrent(BaseModel):            # TODO: E2VID 从这里开始
     """
     Compatible with E2VID_lightweight
     Recurrent, UNet-like architecture where each encoder is followed by a ConvLSTM or ConvGRU.
@@ -187,8 +189,7 @@ class E2VIDRecurrent(BaseModel):
     def forward(self, event_tensor):
         """
         :param event_tensor: N x num_bins x H x W
-        :return: output dict with image taking values in [0,1], and
-                 displacement within event_tensor.
+        :return: output dict with image taking values in [0,1], and displacement within event_tensor.
         """
         output_dict = self.unetrecurrent.forward(event_tensor)
         return output_dict
@@ -236,7 +237,7 @@ class FireNet(BaseModel):
     """
     Refactored version of model from the paper: "Fast Image Reconstruction with an Event Camera", Scheerlinck et. al., 2019.
     The model is essentially a lighter version of E2VID, which runs faster (~2-3x faster) and has considerably less parameters (~200x less).
-    However, the reconstructions are not as high quality as E2VID: they suffer from smearing artefacts, and initialization takes longer.
+    However, the reconstructions are not as high quality as E2VID: they suffer from smearing artifacts, and initialization takes longer.
     """
     def __init__(self, num_bins=5, base_num_channels=16, kernel_size=3, unet_kwargs={}):
         super().__init__()

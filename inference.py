@@ -11,7 +11,7 @@ from model import model as model_arch
 from data_loader.data_loaders import InferenceDataLoader
 from model.model import ColorNet
 from utils.util import CropParameters, get_height_width, torch2cv2, \
-                       append_timestamp, setup_output_folder
+                        append_timestamp, setup_output_folder
 from utils.timers import CudaTimer
 from utils.henri_compatible import make_henri_compatible
 
@@ -68,15 +68,15 @@ def load_model(checkpoint):
 
 def main(args, model):
     dataset_kwargs = {'transforms': {},
-                      'max_length': None,
-                      'sensor_resolution': None,
-                      'num_bins': 5,
-                      'filter_hot_events': args.filter_hot_events,
-                      'voxel_method': {'method': args.voxel_method,
-                                       'k': args.k,
-                                       't': args.t,
-                                       'sliding_window_w': args.sliding_window_w,
-                                       'sliding_window_t': args.sliding_window_t}
+                    'max_length': None,
+                    'sensor_resolution': None,
+                    'num_bins': 5,
+                    'filter_hot_events': args.filter_hot_events,
+                    'voxel_method': {'method': args.voxel_method,
+                                    'k': args.k,
+                                    't': args.t,
+                                    'sliding_window_w': args.sliding_window_w,
+                                    'sliding_window_t': args.sliding_window_t}
                       }
     if args.update:
         print("Updated style model")
@@ -96,11 +96,11 @@ def main(args, model):
     ts_fname = setup_output_folder(args.output_folder)
     
     model.reset_states()
-    for i, item in enumerate(tqdm(data_loader)):
+    for i, item in enumerate(tqdm(data_loader)):        # tqdm 进度条
         voxel = item['events'].to(device)
         if not args.color:
             voxel = crop.pad(voxel)
-        with CudaTimer('Inference'):
+        with CudaTimer('Inference'):    # 先执行 CudaTimer的__init__，再执行__enter__，with结束后执行__exit__
             output = model(voxel)
         # save sample images, or do something with output here
         if args.is_flow:
@@ -133,39 +133,25 @@ def main(args, model):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Template')
-    parser.add_argument('--checkpoint_path', required=True, type=str,
-                        help='path to latest checkpoint (default: None)')
-    parser.add_argument('--events_file_path', required=True, type=str,
-                        help='path to events (HDF5)')
-    parser.add_argument('--output_folder', default="/tmp/output", type=str,
-                        help='where to save outputs to')
-    parser.add_argument('--device', default='0', type=str,
-                        help='indices of GPUs to enable')
-    parser.add_argument('--is_flow', action='store_true',
-                        help='If true, save output to flow npy file')
-    parser.add_argument('--update', action='store_true',
-                        help='Set this if using updated models')
-    parser.add_argument('--color', action='store_true', default=False,
-                      help='Perform color reconstruction')
-    parser.add_argument('--voxel_method', default='between_frames', type=str,
-                        help='which method should be used to form the voxels',
+    parser.add_argument('--checkpoint_path', required=True, type=str, help='path to latest checkpoint (default: None)')
+    parser.add_argument('--events_file_path', required=True, type=str, help='path to events (HDF5)')
+    parser.add_argument('--output_folder', default="/tmp/output", type=str, help='where to save outputs to')
+    parser.add_argument('--device', default='0', type=str, help='indices of GPUs to enable')
+    parser.add_argument('--is_flow', action='store_true', help='If true, save output to flow npy file')
+    parser.add_argument('--update', action='store_true', help='Set this if using updated models')       # TODO: ?? what is 'updated models'
+    parser.add_argument('--color', action='store_true', default=False, help='Perform color reconstruction')
+    parser.add_argument('--voxel_method', default='between_frames', type=str, help='which method should be used to form the voxels', 
                         choices=['between_frames', 'k_events', 't_seconds'])
-    parser.add_argument('--k', type=int,
-                        help='new voxels are formed every k events (required if voxel_method is k_events)')
-    parser.add_argument('--sliding_window_w', type=int,
-                        help='sliding_window size (required if voxel_method is k_events)')
-    parser.add_argument('--t', type=float,
-                        help='new voxels are formed every t seconds (required if voxel_method is t_seconds)')
-    parser.add_argument('--sliding_window_t', type=float,
-                        help='sliding_window size in seconds (required if voxel_method is t_seconds)')
-    parser.add_argument('--loader_type', default='H5', type=str,
-                        help='Which data format to load (HDF5 recommended)')
-    parser.add_argument('--filter_hot_events', action='store_true',
-                        help='If true, auto-detect and remove hot pixels')
-    parser.add_argument('--legacy_norm', action='store_true', default=False,
+    parser.add_argument('--k', type=int, help='new voxels are formed every k events (required if voxel_method is k_events)')
+    parser.add_argument('--sliding_window_w', type=int, help='sliding_window size (required if voxel_method is k_events)')
+    parser.add_argument('--t', type=float, help='new voxels are formed every t seconds (required if voxel_method is t_seconds)')
+    parser.add_argument('--sliding_window_t', type=float, help='sliding_window size in seconds (required if voxel_method is t_seconds)')
+    parser.add_argument('--loader_type', default='H5', type=str, help='Which data format to load (HDF5 recommended)')
+    parser.add_argument('--filter_hot_events', action='store_true', help='If true, auto-detect and remove hot pixels')
+    parser.add_argument('--legacy_norm', action='store_true', default=False, 
                         help='Normalize nonzero entries in voxel to have mean=0, std=1 according to Rebecq20PAMI and Scheerlinck20WACV.'
                         'If --e2vid or --firenet_legacy are set, --legacy_norm will be set to True (default False).')
-    parser.add_argument('--e2vid', action='store_true', default=False,
+    parser.add_argument('--e2vid', action='store_true', default=False, 
                         help='set required parameters to run original e2vid as described in Rebecq20PAMI')
     parser.add_argument('--firenet_legacy', action='store_true', default=False,
                         help='set required parameters to run legacy firenet as described in Scheerlinck20WACV (not for retrained models using updated code)')
@@ -173,7 +159,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if args.device is not None:
-        os.environ['CUDA_VISIBLE_DEVICES'] = args.device
+        os.environ['CUDA_VISIBLE_DEVICES'] = args.device            # 系统环境相关一些key-value
     print('Loading checkpoint: {} ...'.format(args.checkpoint_path))
     checkpoint = torch.load(args.checkpoint_path)
     args, checkpoint = legacy_compatibility(args, checkpoint)

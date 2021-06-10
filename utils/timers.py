@@ -15,13 +15,14 @@ class CudaTimer:
         self.start = torch.cuda.Event(enable_timing=True)
         self.end = torch.cuda.Event(enable_timing=True)
 
+    # __enter__和__exit__方法，即支持上下文管理器协议。上下文管理器就是支持上下文管理器协议的对象，它是为了with而生。当with语句在开始运行时，会在上下文管理器对象上调用 __enter__ 方法。with语句运行结束后，会在上下文管理器对象上调用 __exit__ 方法
     def __enter__(self):
         self.start.record()
         return self
 
     def __exit__(self, *args):
         self.end.record()
-        torch.cuda.synchronize()
+        torch.cuda.synchronize()    # Waits for all kernels in all streams on a CUDA device to complete
         cuda_timers[self.timer_name].append(self.start.elapsed_time(self.end))
 
 

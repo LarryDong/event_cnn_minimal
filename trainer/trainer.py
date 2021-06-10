@@ -14,8 +14,8 @@ class Trainer(BaseTrainer):
     Trainer class
     """
     def __init__(self, model, loss_ftns, optimizer, config, data_loader,
-                 valid_data_loader=None, lr_scheduler=None, len_epoch=None):
-        super().__init__(model, loss_ftns, optimizer, config)
+                valid_data_loader=None, lr_scheduler=None, len_epoch=None):
+        super().__init__(model, loss_ftns, optimizer, config)   # super() 函数是用于调用父类(超类)的一个方法。
         self.config = config
         self.data_loader = data_loader
         if len_epoch is None:
@@ -51,8 +51,12 @@ class Trainer(BaseTrainer):
         flow = None if item['flow'] is None else item['flow'].float().to(self.device)
         return events, image, flow
 
-    def forward_sequence(self, sequence, all_losses=False):
-        losses = collections.defaultdict(list)
+
+    # 在_train_epoch中调用了self.forward_sequence
+    def forward_sequence(self, sequence, all_losses=False):     # TODO: 还未研究
+        # Python中通过Key访问字典，当Key不存在时，会引发‘KeyError’异常。为了避免这种情况的发生，可以使用collections类中的defaultdict()方法来为字典提供默认值。
+        losses = collections.defaultdict(list)  
+        # self.model 在trainer的init中的base_trainer的init中定义：self.model = model.to(self.device)
         self.model.reset_states()
         for i, item in enumerate(sequence):
             events, image, flow = self.to_device(item)
@@ -101,8 +105,8 @@ class Trainer(BaseTrainer):
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
                 return {'val_' + k : v for k, v in val_log.items()}
-        self.model.train()
-        self.train_metrics.reset()
+        self.model.train()              # TODO:
+        self.train_metrics.reset()      # 将pd.DataFrame的内容全部设置为0
         for batch_idx, sequence in enumerate(self.data_loader):
             self.optimizer.zero_grad()
             losses = self.forward_sequence(sequence)
@@ -110,7 +114,7 @@ class Trainer(BaseTrainer):
             loss.backward()
             self.optimizer.step()
 
-            self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
+            self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)  # self.writer在base_trainer中定义为 TensorboardWriter
             for k, v in losses.items():
                 self.train_metrics.update(k, v.item())
 
@@ -135,7 +139,7 @@ class Trainer(BaseTrainer):
                 log.update(**{'val_' + k : v for k, v in val_log.items()})
 
         if self.lr_scheduler is not None:
-            self.lr_scheduler.step()
+            self.lr_scheduler.step()        # 调整学习率。需要在optimizer.step()之后调用
         self.true_once = False
         return log
 
