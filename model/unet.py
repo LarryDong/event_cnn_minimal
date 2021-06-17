@@ -12,9 +12,9 @@ from .model_util import *
 
 class BaseUNet(nn.Module):
     def __init__(self, base_num_channels, num_encoders, num_residual_blocks,
-                 num_output_channels, skip_type, norm, use_upsample_conv,
-                 num_bins, recurrent_block_type=None, kernel_size=5,
-                 channel_multiplier=2):
+                num_output_channels, skip_type, norm, use_upsample_conv,
+                num_bins, recurrent_block_type=None, kernel_size=5,
+                channel_multiplier=2):
         super(BaseUNet, self).__init__()
         self.base_num_channels = base_num_channels
         self.num_encoders = num_encoders
@@ -26,16 +26,16 @@ class BaseUNet(nn.Module):
         self.num_bins = num_bins
         self.recurrent_block_type = recurrent_block_type
 
-        self.encoder_input_sizes = [int(self.base_num_channels * pow(channel_multiplier, i)) for i in range(self.num_encoders)]
+        self.encoder_input_sizes = [int(self.base_num_channels * pow(channel_multiplier, i)) for i in range(self.num_encoders)] # pow(x,y), x的y次方
         self.encoder_output_sizes = [int(self.base_num_channels * pow(channel_multiplier, i + 1)) for i in range(self.num_encoders)]
         self.max_num_channels = self.encoder_output_sizes[-1]
         self.skip_ftn = eval('skip_' + skip_type)
         print('Using skip: {}'.format(self.skip_ftn))
         if use_upsample_conv:
-            print('Using UpsampleConvLayer (slow, but no checkerboard artefacts)')
+            print('Using UpsampleConvLayer (slow, but no checkerboard artifacts)')  # 反卷积有“棋盘效应”
             self.UpsampleLayer = UpsampleConvLayer
         else:
-            print('Using TransposedConvLayer (fast, with checkerboard artefacts)')
+            print('Using TransposedConvLayer (fast, with checkerboard artifacts)')
             self.UpsampleLayer = TransposedConvLayer
         assert(self.num_output_channels > 0)
         print(f'Kernel size {self.kernel_size}')
@@ -48,10 +48,12 @@ class BaseUNet(nn.Module):
             self.resblocks.append(ResidualBlock(self.max_num_channels, self.max_num_channels, norm=self.norm))
 
     def build_decoders(self):
-        decoder_input_sizes = reversed(self.encoder_output_sizes)
+        decoder_input_sizes = reversed(self.encoder_output_sizes)   # reversed 返回反向的迭代器对象
         decoder_output_sizes = reversed(self.encoder_input_sizes)
         decoders = nn.ModuleList()
-        for input_size, output_size in zip(decoder_input_sizes, decoder_output_sizes):
+        # zip() 函数用于将可迭代的对象作为参数，将对象中对应的元素打包成一个个元组，然后返回由这些元组组成的列表。
+        # a=[1,2,3], b=[4,5,6], zip(a,b)=[(1,4),(2,5),(3,6)]
+        for input_size, output_size in zip(decoder_input_sizes, decoder_output_sizes):  
             decoders.append(self.UpsampleLayer(
                 input_size if self.skip_type == 'sum' else 2 * input_size,
                 output_size, kernel_size=self.kernel_size,
@@ -60,7 +62,7 @@ class BaseUNet(nn.Module):
 
     def build_prediction_layer(self, num_output_channels, norm=None):
         return ConvLayer(self.base_num_channels if self.skip_type == 'sum' else 2 * self.base_num_channels,
-                         num_output_channels, 1, activation=None, norm=norm)
+                        num_output_channels, 1, activation=None, norm=norm)
 
 
 class WNet(BaseUNet):
@@ -247,19 +249,19 @@ class UNetFlowNoRecur(BaseUNet):
 class UNetRecurrent(BaseUNet):
     """
     Compatible with E2VID_lightweight
-    Recurrent UNet architecture where every encoder is followed by a recurrent convolutional block,
-    such as a ConvLSTM or a ConvGRU.
+    Recurrent UNet architecture where every encoder is followed by a recurrent convolutional block, such as a ConvLSTM or a ConvGRU.
     Symmetric, skip connections on every encoding layer.
     """
     def __init__(self, unet_kwargs):
         final_activation = unet_kwargs.pop('final_activation', 'none')
+        # getattr，获得对象的属性值。getattr(a, 'bar2', 3)  属性 bar2 不存在，但设置了默认值
         self.final_activation = getattr(torch, final_activation, None)
         print(f'Using {self.final_activation} final activation')
         unet_kwargs['num_output_channels'] = 1
         super().__init__(**unet_kwargs)
         self.head = ConvLayer(self.num_bins, self.base_num_channels,
-                              kernel_size=self.kernel_size, stride=1,
-                              padding=self.kernel_size // 2)  # N x C x H x W -> N x 32 x H x W
+                            kernel_size=self.kernel_size, stride=1,
+                            padding=self.kernel_size // 2)  # N x C x H x W -> N x 32 x H x W
 
         self.encoders = nn.ModuleList()
         for input_size, output_size in zip(self.encoder_input_sizes, self.encoder_output_sizes):

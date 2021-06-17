@@ -37,15 +37,14 @@ def temporal_consistency_loss(image0, image1, processed0, processed1, flow01, al
     warping_grid_x = (2 * warping_grid_x / (t_width - 1)) - 1
     warping_grid_y = (2 * warping_grid_y / (t_height - 1)) - 1
 
-    warping_grid = torch.stack(
-        [warping_grid_x, warping_grid_y], dim=3)  # 1 x H x W x 2
+    warping_grid = torch.stack([warping_grid_x, warping_grid_y], dim=3)  # 1 x H x W x 2
 
     image0_warped_to1 = F.grid_sample(image0, warping_grid)
     visibility_mask = torch.exp(-alpha * (image1 - image0_warped_to1) ** 2)
     processed0_warped_to1 = F.grid_sample(processed0, warping_grid)
 
     tc_map = visibility_mask * torch.abs(processed1 - processed0_warped_to1) \
-             / (torch.abs(processed1) + torch.abs(processed0_warped_to1) + 1e-5)
+            / (torch.abs(processed1) + torch.abs(processed0_warped_to1) + 1e-5)
 
     tc_loss = tc_map.mean()
 

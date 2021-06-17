@@ -184,7 +184,7 @@ class E2VIDRecurrent(BaseModel):            # TODO: E2VID 从这里开始
         self.unetrecurrent.states = states
 
     def reset_states(self):
-        self.unetrecurrent.states = [None] * self.unetrecurrent.num_encoders
+        self.unetrecurrent.states = [None] * self.unetrecurrent.num_encoders    # ASK:
 
     def forward(self, event_tensor):
         """

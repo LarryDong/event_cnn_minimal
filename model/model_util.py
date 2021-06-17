@@ -54,14 +54,21 @@ def optimal_crop_size(max_size, max_subsample_factor, safety_margin=0):
 
 
 class CropParameters:
-    """ Helper class to compute and store useful parameters for pre-processing and post-processing
-        of images in and out of E2VID.
+    """ Helper class to compute and store useful parameters for pre-processing and post-processing of images in and out of E2VID.
         Pre-processing: finding the best image size for the network, and padding the input image with zeros
         Post-processing: Crop the output image back to the original image size
-    """
+    """     #  crop 剪裁
 
     def __init__(self, width, height, num_encoders, safety_margin=0):
-
+        
+        # 剪裁部分函数说明
+        '''
+        有N个encoder，故尺寸需要缩小N次，变为 size/2^N，这里N=3 (reconstruction.json)
+        要求保证：1. 能整除；2. 最小图像时，仍然具有margin。
+        故在optimal_crop_size中：1. 首先保证原图是大于等于能被2^N除尽的最小值
+        2. 添加margin的宽度，应该与encoder的数量有关，且要考虑margin在卷积时尺寸的缩小
+        确定corp_size之后，在原有图片大小基础上进行padding补0
+        '''
         self.height = height
         self.width = width
         self.num_encoders = num_encoders
@@ -72,6 +79,9 @@ class CropParameters:
         self.padding_bottom = floor(0.5 * (self.height_crop_size - self.height))
         self.padding_left = ceil(0.5 * (self.width_crop_size - self.width))
         self.padding_right = floor(0.5 * (self.width_crop_size - self.width))
+
+        # ZeroPad2d 定义左右上下4个边界的pad的维度，补0
+        # 再调用 y = pad(x) 时，就在x的数据上下左右分别pad预先定义的维度
         self.pad = ZeroPad2d((self.padding_left, self.padding_right, self.padding_top, self.padding_bottom))
 
         self.cx = floor(self.width_crop_size / 2)
@@ -83,7 +93,7 @@ class CropParameters:
         self.iy1 = self.cy + ceil(self.height / 2)
 
     def crop(self, img):
-        return img[..., self.iy0:self.iy1, self.ix0:self.ix1]
+        return img[..., self.iy0:self.iy1, self.ix0:self.ix1]   # ASK:
 
 
 def format_power(size):

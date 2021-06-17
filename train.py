@@ -66,6 +66,7 @@ def main(config):
 
     # init loss classes
     loss_ftns = [getattr(module_loss, loss)(**kwargs) for loss, kwargs in config['loss_ftns'].items()]
+    # 在这里getattr获取config中[loss_ftns]的属性值，即perceptual_loss和temporal_consistency_loss
 
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())        # filter(func, iter), 保留可迭代器iter中满足func的对象
@@ -74,10 +75,10 @@ def main(config):
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
     trainer = Trainer(model, loss_ftns, optimizer,          # TODO:
-                      config=config,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+                    config=config,
+                    data_loader=data_loader,
+                    valid_data_loader=valid_data_loader,
+                    lr_scheduler=lr_scheduler)
 
     trainer.train()
 
