@@ -77,19 +77,29 @@ class ConfigParser:
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
         return cls(config, resume, modification)
 
-    def init_obj(self, name, module, *args, **kwargs):
+    def init_obj(self, name, module, *args, **kwargs):  # *可选参数 **关键参数
+        print('args: ', args, 'kwargs: ', kwargs)
         """
         Finds a function handle with the name given as 'type' in config, and returns the
         instance initialized with corresponding arguments given.
 
-        `object = config.init_obj('name', module, a, b=1)`
-        is equivalent to
+        `object = config.init_obj('name', module, a, b=1)` is equivalent to
         `object = module.name(a, b=1)`
         """
-        module_name = self[name]['type']        # ASK: [] 是什么意思。这里的self？
+        module_name = self[name]['type']        # ASK: [] 是什么意思。这里的self？ Re: 好像得到的是调用这个函数的config中的[name][type]
         module_args = dict(self[name]['args'])
+        # print('module_name: ', module_name, 'module_args', module_args)
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
+        # print('111')
         module_args.update(kwargs)
+        # print('222')
+        # print("module: ------------------")
+        # print(module)
+        # print(getattr(module, module_name))
+        # print('module_args: ------------------')
+        # print(module_args)
+        getattr(module, module_name)(*args, **module_args)
+        # print('333')
         return getattr(module, module_name)(*args, **module_args)
 
     def init_ftn(self, name, module, *args, **kwargs):
@@ -97,8 +107,7 @@ class ConfigParser:
         Finds a function handle with the name given as 'type' in config, and returns the
         function with given arguments fixed with functools.partial.
 
-        `function = config.init_ftn('name', module, a, b=1)`
-        is equivalent to
+        `function = config.init_ftn('name', module, a, b=1)` is equivalent to
         `function = lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
         """
         module_name = self[name]['type']

@@ -525,12 +525,13 @@ class MemMapDataset(BaseVoxelDataset):
                 print("Inferred sensor resolution: {}".format(self.sensor_resolution))
 
 
-class SequenceDataset(Dataset):
+class SequenceDataset(Dataset):  # TODO: 
     """Load sequences of time-synchronized {event tensors + frames} from a folder."""
     def __init__(self, data_root, sequence_length, dataset_type='MemMapDataset',
             step_size=None, proba_pause_when_running=0.0,
             proba_pause_when_paused=0.0, normalize_image=False,
             noise_kwargs={}, hot_pixel_kwargs={}, dataset_kwargs={}):
+        print('====> In __init__')
         self.L = sequence_length
         self.step_size = step_size if step_size is not None else self.L
         self.proba_pause_when_running = proba_pause_when_running

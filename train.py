@@ -53,16 +53,33 @@ def load_model(args, checkpoint=None, config=None):
 
 
 def main(config):
+    print("=====> in 'main'")
     logger = config.get_logger('train')
 
     # setup data_loader instances
+    print("=====> Init obj.")
+    
     data_loader = config.init_obj('data_loader', module_data)
+    '''
+    在init一个module_data(data_loader.data_loaders)对象时，读取config文件中'data_loader'的相关配置进行初始化
+    初始化时传入的可选参数和关键参数列表均为空。
+    在init_obj函数内部，首先根据传入的名字('data_loader')从config中确定type为HDF5格式，并读取了相关配置参数为module_args
+    之后对参数进行更新（及如果传入了关键参数，则更新；否则默认使用config中的全部配置）
+    之后调用getattr()(args, module_args)时，getattr()获取了module的'hdf5'属性，attr(args, module_args)相当于进行了HDF5DataLoader的初始化(__init__)
+    在HDF5DataLoader的__init__中进行了相关参数配置
+    '''
+
+
+    print("=====> Init obj. data_loader")
     valid_data_loader = config.init_obj('valid_data_loader', module_data)
+    print("=====> Init obj done.")
 
     # build model architecture, then print to console
     # 用module_arch初始化 config 中的'arch'参数， 命名为model。module_arch是自己定义的
+    print("=====> Init architecture.")
     model = config.init_obj('arch', module_arch)    # arch:architecture
     logger.info(model)
+    print("=====> Init architecture done.")
 
     # init loss classes
     loss_ftns = [getattr(module_loss, loss)(**kwargs) for loss, kwargs in config['loss_ftns'].items()]
@@ -80,10 +97,12 @@ def main(config):
                     valid_data_loader=valid_data_loader,
                     lr_scheduler=lr_scheduler)
 
+    print("=====> start 'train.train()'")
     trainer.train()
 
 
 if __name__ == '__main__':
+    print("=====> in 'train'")
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default=None, type=str, help='config file path (default: None)')
     args.add_argument('-r', '--resume', default=None, type=str, help='path to latest checkpoint (default: None)')
@@ -91,7 +110,7 @@ if __name__ == '__main__':
     args.add_argument('--limited_memory', default=False, action='store_true', help='prevent "too many open files" error by setting pytorch multiprocessing to "file_system".')
 
     # custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')  # namedtuple: 利用别名访问tuple元素，依次是 falgs/type/target
+    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')  # namedtuple: 利用别名访问tuple元素，依次是 flags/type/target
     options = [
         CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
         CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size'),
