@@ -8,6 +8,7 @@ import model.model as module_arch
 from parse_config import ConfigParser       # 自己定义的模块
 from trainer import Trainer
 
+# zhujun
 
 # fix random seeds for reproducibility
 SEED = 123
