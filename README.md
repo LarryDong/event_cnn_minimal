@@ -2,64 +2,104 @@
 Minimal code for running inference on models trained for Reducing the Sim-to-Real Gap for Event Cameras, ECCV'20.
 
 # Running with [Anaconda](https://docs.anaconda.com/anaconda/install/)
-```
-cuda_version=10.1
 
+```bash
+cuda_version=11.1 
 conda create -y -n event_cnn python=3.7
 conda activate event_cnn
-conda install -y pytorch torchvision cudatoolkit=$cuda_version -c pytorch
-conda install -y -c conda-forge opencv
-conda install -y -c conda-forge tqdm
-conda install -y -c anaconda h5py 
-conda install -y -c intel pandas
-conda install -y -c anaconda scikit-image
+# conda install -y pytorch torchvision cudatoolkit=$cuda_version -c pytorch
+# 出错：
+# CondaHTTPError: HTTP 000 CONNECTION FAILED for url <https://conda.anaconda.org/pytorch/linux-64/repodata.json>
+# 见博客：
+# https://blog.csdn.net/songchunxiao1991/article/details/95192063
+# 添加镜像站到Anaconda
+conda config --add channels http://mirror.tuna.tsinghua.edu.cn/anaconda/pkgs/main/
+conda config --add channels http://mirror.tuna.tsinghua.edu.cn/anaconda/pkgs/free/
+conda config --set show_channel_urls yes
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/conda-forge/ 
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/msys2/ 
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/bioconda/ 
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/menpo/ 
+conda config --add channels https://mirrors.tuna.tsinghua.edu.cn/anaconda/cloud/pytorch/
+# 去除：-c pytorch 后安装
+pip install pytorch torchvision cudatoolkit=$cuda_version
+
+# conda install -y -c conda-forge opencv
+# 出错：
+# CondaHTTPError: HTTP 000 CONNECTION FAILED for url <https://conda.anaconda.org/conda-forge/linux-64/repodata.json>
+# 去掉 -c conda-forge 
+pip install -y  opencv
+pip install -y tqdm
+pip install -y   h5py 
+pip install -y   pandas
+pip install -y   scikit-image
 pip install thop --user
 ```
+
 As a further prerequisite, you will need to have [ROS](http://wiki.ros.org/kinetic/Installation/Ubuntu) installed on your system. Make sure not to source your ROS and Conda envs at the same time, as they conflict.
+
 # Usage
 
 Clone this repo and submodules:
-```
+
+```bash
 git clone -b inference git@github.com:TimoStoff/event_cnn_minimal.git --recursive
 cd event_cnn_minimal/events_contrast_maximization/
 git checkout master
 cd ..
 ```
+
 ## Conversion to HDF5
+
 This code processes the events in HDF5 format. To convert the rosbags to this format, open a new terminal and source a ROS workspace.
-```
+
+```bash
 source /opt/ros/kinetic/setup.bash
 python events_contrast_maximization/tools/rosbag_to_h5.py <path/to/rosbag/or/dir/with/rosbags> --output_dir <path/to/save_h5_events> --event_topic <event_topic> --image_topic <image_topic>
 ```
+
 As an example, using [`slider_depth`](http://rpg.ifi.uzh.ch/datasets/davis/slider_depth.bag) from "The event camera dataset and simulator":
-```
+
+```bash
 wget http://rpg.ifi.uzh.ch/datasets/davis/slider_depth.bag -O /tmp/slider_depth.bag
 source /opt/ros/kinetic/setup.bash
 python events_contrast_maximization/tools/rosbag_to_h5.py /tmp/slider_depth.bag --output_dir /tmp/h5_events --event_topic /dvs/events --image_topic /dvs/image_raw
 ```
+
 If you have access to [events from a color event camera](http://rpg.ifi.uzh.ch/CED.html), you need to set `image_topic` to the topic containing events and a flag `--is_color`. For example, using [`carpet_simple.bag`](http://rpg.ifi.uzh.ch/CED/datasets/CED_simple.zip):
-```
+
+```bash
 python events_contrast_maximization/tools/rosbag_to_h5.py /tmp/simple_carpet.bag --image_topic /dvs/image_color --is_color
 ```
+
 ## Inference
+
 Download the pretrained models from [here](https://drive.google.com/open?id=1J6PbqYPOGlyspYsdH4fgg5pZpc_l-BOD), into event_cnn_minimal.
 
 To estimate reconstruction:
-```
+
+```bash
 python inference.py --checkpoint_path <path/to/model.pth> --device 0 --h5_file_path </path/to/events.h5> --output_folder </path/to/output/dir>
 ```
+
 For example:
-```
+
+```bash
 python inference.py --checkpoint_path pretrained/reconstruction/reconstruction_model.pth --device 0 --h5_file_path /tmp/h5_events/slider_depth.h5 --output_folder /tmp/reconstruction
 ```
+
 To estimate flow:
-```
+
+```bash
 python inference.py --checkpoint_path <path/to/model.pth> --device 0 --h5_file_path </path/to/events.h5> --output_folder </path/to/output/dir> --is_flow
 ```
+
 For example:
-```
+
+```bash
 python inference.py --checkpoint_path pretrained/flow/flow_model.pth --device 0 --h5_file_path /tmp/h5_events/slider_depth.h5 --output_folder /tmp/flow --is_flow
 ```
+
 Flow is saved as both a png showing HSV color as slow vectors and as npy files. Should look something like this:
 ![Reconstruction](.readme/reonstruction.gif)
 ![Flow](.readme/flow.gif)
