@@ -179,7 +179,6 @@ class E2VIDRecurrent(BaseModel):            # TODO: E2VID 从这里开始
         self.unetrecurrent = UNetRecurrent(unet_kwargs)
         print('<==== E2VIDRecurrent __init__ done ')
         
-
     @property
     def states(self):
         return copy_states(self.unetrecurrent.states)
