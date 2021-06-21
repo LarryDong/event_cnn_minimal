@@ -236,7 +236,9 @@ class RandomCrop(object):
 
         return i, j, th, tw
 
+    # 即 __call__()。该方法的功能类似于在类中重载 () 运算符，使得类实例对象可以像调用普通函数那样，以“对象名()”的形式使用。
     def __call__(self, x, is_flow=False):
+        print('====> in __call__')
         """
             x: [C x H x W] Tensor to be rotated.
             is_flow: this parameter does not have any effect

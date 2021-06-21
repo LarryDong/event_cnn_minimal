@@ -74,8 +74,10 @@ class BaseTrainer:
         """
         Full training logic
         """
+        print('111')
         not_improved_count = 0
         for epoch in range(self.start_epoch, self.epochs + 1):
+            print('epoch: ', epoch)
             result = self._train_epoch(epoch)
             self.add_dict(result, epoch)
 

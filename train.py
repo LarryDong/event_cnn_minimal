@@ -69,17 +69,25 @@ def main(config):
     在HDF5DataLoader的__init__中进行了相关参数配置
     '''
 
-
     print("=====> Init obj. data_loader")
     valid_data_loader = config.init_obj('valid_data_loader', module_data)
     print("=====> Init obj done.")
 
     # build model architecture, then print to console
     # 用module_arch初始化 config 中的'arch'参数， 命名为model。module_arch是自己定义的
-    print("=====> Init architecture.")
+    print(">>>>> Init architecture.")
+    print('module_arch: ', module_arch)
     model = config.init_obj('arch', module_arch)    # arch:architecture
-    logger.info(model)
-    print("=====> Init architecture done.")
+    ''' 这里init_obj 初始化的是module
+    module_name: E2VIDRecurrent 
+    module_args: {'unet_kwargs': OrderedDict([('num_bins', 10), ('skip_type', 'sum'),
+    ('recurrent_block_type', 'convlstm'), ('num_encoders', 3), ('base_num_channels', 32),
+    ('num_residual_blocks', 2), ('use_upsample_conv', True), ('final_activation', ''), ('norm', 'none')])}
+    最后同样，利用getattr()初始化一个E2VIDRecurrent。TODO: 目前初始化失败。
+    '''
+
+    # logger.info(model)
+    print("<<<<< Init architecture done.")
 
     # init loss classes
     loss_ftns = [getattr(module_loss, loss)(**kwargs) for loss, kwargs in config['loss_ftns'].items()]
