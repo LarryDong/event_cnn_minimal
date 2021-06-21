@@ -34,12 +34,20 @@ def concatenate_datasets(data_file, dataset_type, dataset_kwargs={}):
     :param dataset_type: Pointer to dataset class
     :param sequence_length: Desired length of each sequence
     :return ConcatDataset: concatenated dataset of all data_paths in data_file
-    """
+    # """
+    # print('====> in concatenate_datasets')
+    # print('data_file: ', data_file)
+    # print('dataset_type: ', dataset_type)
+    # print('dataset_kwargs: ', dataset_kwargs)
+
     data_paths = pd.read_csv(data_file, header=None).values.flatten().tolist()
+    # print('data_paths:', data_paths)
     dataset_list = []
-    print('Concatenating {} datasets'.format(dataset_type))
+    # print('Concatenating {} datasets'.format(dataset_type))
+    # print('1111')
     for data_path in tqdm(data_paths):
         dataset_list.append(dataset_type(data_path, **dataset_kwargs))
+    # print('2222')
     return ConcatDataset(dataset_list)
 
 def concatenate_memmap_datasets(data_file, dataset_type, dataset_kwargs):

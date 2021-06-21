@@ -394,7 +394,7 @@ class DynamicH5Dataset(BaseVoxelDataset):
             self.sensor_resolution = self.h5_file.attrs['sensor_resolution'][0:2]
         else:
             self.sensor_resolution = self.sensor_resolution[0:2]
-        print("sensor resolution = {}".format(self.sensor_resolution))
+        # print("sensor resolution = {}".format(self.sensor_resolution))
         self.has_flow = 'flow' in self.h5_file.keys() and len(self.h5_file['flow']) > 0
         self.t0 = self.h5_file['events/ts'][0]
         self.tk = self.h5_file['events/ts'][-1]
@@ -525,12 +525,13 @@ class MemMapDataset(BaseVoxelDataset):
                 print("Inferred sensor resolution: {}".format(self.sensor_resolution))
 
 
-class SequenceDataset(Dataset):
+class SequenceDataset(Dataset):  # TODO: 
     """Load sequences of time-synchronized {event tensors + frames} from a folder."""
     def __init__(self, data_root, sequence_length, dataset_type='MemMapDataset',
             step_size=None, proba_pause_when_running=0.0,
             proba_pause_when_paused=0.0, normalize_image=False,
             noise_kwargs={}, hot_pixel_kwargs={}, dataset_kwargs={}):
+        # print('====> In __init__')
         self.L = sequence_length
         self.step_size = step_size if step_size is not None else self.L
         self.proba_pause_when_running = proba_pause_when_running
@@ -542,7 +543,12 @@ class SequenceDataset(Dataset):
         assert(self.L > 0)
         assert(self.step_size > 0)
 
+        # print('222')
+        # print('dataset_type: ', dataset_type)
+        # print(eval(dataset_type))
+
         self.dataset = eval(dataset_type)(data_root, **dataset_kwargs)
+        # print('333')
         if self.L >= self.dataset.length:
             self.length = 0
         else:

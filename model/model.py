@@ -170,11 +170,15 @@ class E2VIDRecurrent(BaseModel):            # TODO: E2VID 从这里开始
     Recurrent, UNet-like architecture where each encoder is followed by a ConvLSTM or ConvGRU.
     """
     def __init__(self, unet_kwargs):
+        print('====> E2VIDRecurrent __init__. 1-st, init BaseModel')
         super().__init__()
+        print('init BaseModel done')
         self.num_bins = unet_kwargs['num_bins']  # legacy
         self.num_encoders = unet_kwargs['num_encoders']  # legacy
+        print('2-nd, init UNetRecurrent')
         self.unetrecurrent = UNetRecurrent(unet_kwargs)
-
+        print('<==== E2VIDRecurrent __init__ done ')
+        
     @property
     def states(self):
         return copy_states(self.unetrecurrent.states)

@@ -140,6 +140,7 @@ class UNetFlow(BaseUNet):
     """
 
     def __init__(self, unet_kwargs):
+        print('====> Use UNetFlow')
         unet_kwargs['num_output_channels'] = 3
         super().__init__(**unet_kwargs)
         self.head = ConvLayer(self.num_bins, self.base_num_channels,
@@ -197,6 +198,7 @@ class UNetFlowNoRecur(BaseUNet):
     """
 
     def __init__(self, unet_kwargs):
+        print('====> Use UNetFlowNoRecur')
         unet_kwargs['num_output_channels'] = 3
         super().__init__(**unet_kwargs)
         self.head = ConvLayer(self.num_bins, self.base_num_channels,
@@ -246,19 +248,22 @@ class UNetFlowNoRecur(BaseUNet):
         return output_dict
 
 
-class UNetRecurrent(BaseUNet):
+class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
     """
     Compatible with E2VID_lightweight
     Recurrent UNet architecture where every encoder is followed by a recurrent convolutional block, such as a ConvLSTM or a ConvGRU.
     Symmetric, skip connections on every encoding layer.
     """
     def __init__(self, unet_kwargs):
+        print('====> UNetRecurrent __init__')
         final_activation = unet_kwargs.pop('final_activation', 'none')
         # getattr，获得对象的属性值。getattr(a, 'bar2', 3)  属性 bar2 不存在，但设置了默认值
         self.final_activation = getattr(torch, final_activation, None)
         print(f'Using {self.final_activation} final activation')
         unet_kwargs['num_output_channels'] = 1
+        print('1-st, init BaseUNet')
         super().__init__(**unet_kwargs)
+        print('init BaseUNet done')
         self.head = ConvLayer(self.num_bins, self.base_num_channels,
                             kernel_size=self.kernel_size, stride=1,
                             padding=self.kernel_size // 2)  # N x C x H x W -> N x 32 x H x W
@@ -274,6 +279,7 @@ class UNetRecurrent(BaseUNet):
         self.decoders = self.build_decoders()
         self.pred = self.build_prediction_layer(self.num_output_channels, self.norm)
         self.states = [None] * self.num_encoders
+        print('<==== UNetRecurrent __init__ done')
 
     def forward(self, x):
         """
@@ -312,6 +318,7 @@ class UNet(BaseUNet):
     UNet architecture. Symmetric, skip connections on every encoding layer.
     """
     def __init__(self, unet_kwargs):
+        print('====> Use UNet')
         super().__init__(**unet_kwargs)
         self.encoders = nn.ModuleList()
         for i, (input_size, output_size) in enumerate(zip(self.encoder_input_sizes, self.encoder_output_sizes)):
