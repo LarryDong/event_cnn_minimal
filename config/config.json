@@ -21,7 +21,7 @@
     "data_loader": {
         "type": "DynamicH5DataLoader",
         "args": {
-            "data_file": "/tmp/extracted_data/data_file.txt",
+            "data_file": "/home/zhujun/Documents/data/e2vid/train.csv",
             "batch_size": 32,
             "shuffle": true,
             "num_workers": 1,
@@ -55,7 +55,7 @@
     "valid_data_loader": {
         "type": "DynamicH5DataLoader",
         "args": {
-            "data_file": "/tmp/extracted_data/data_file.txt",
+            "data_file": "/home/zhujun/Documents/data/e2vid/valid.csv",
             "batch_size": 16,
             "shuffle": false,
             "num_workers": 1,
