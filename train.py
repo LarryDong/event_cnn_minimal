@@ -118,10 +118,12 @@ def main(config):
 if __name__ == '__main__':
     print("=====> in 'train'")
     args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default=None, type=str, help='config file path (default: None)')
+    args.add_argument('-c', '--config', default='config/reconstruction.json', type=str, help='config file path (default: config/reconstruction.json)')
     args.add_argument('-r', '--resume', default=None, type=str, help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str, help='indices of GPUs to enable (default: all)')
     args.add_argument('--limited_memory', default=False, action='store_true', help='prevent "too many open files" error by setting pytorch multiprocessing to "file_system".')
+    # 不接参数 --limited_memory 则 args.parse_args().limited_memory = True 否则为False
+    # --limited_memory   limited_memory是属性的名字， --代表可选，没有这两小横表示位置参数，必须指定
 
     # custom cli options to modify configuration from default values given in json file.
     CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')  # namedtuple: 利用别名访问tuple元素，依次是 flags/type/target
