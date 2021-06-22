@@ -42,7 +42,7 @@
                 "dataset_kwargs": {
                     "transforms": {
                         "RandomCrop": {
-                            "size": 112
+                            "size": 32
                         },
                         "RandomFlip": {}
                     },

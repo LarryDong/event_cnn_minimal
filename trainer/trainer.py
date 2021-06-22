@@ -53,17 +53,22 @@ class Trainer(BaseTrainer):
 
 
     # 在_train_epoch中调用了self.forward_sequence
-    def forward_sequence(self, sequence, all_losses=False):     # TODO: 还未研究
+    def forward_sequence(self, sequence, all_losses=False):
+        print('====> in forward_sequence')
         # Python中通过Key访问字典，当Key不存在时，会引发‘KeyError’异常。为了避免这种情况的发生，可以使用collections类中的defaultdict()方法来为字典提供默认值。
         losses = collections.defaultdict(list)  
         # self.model 在trainer的init中的base_trainer的init中定义：self.model = model.to(self.device)
         self.model.reset_states()
         for i, item in enumerate(sequence):
+            # print('i, iter: ', i, '  /  ', item)  # item: frame{}, events{}, ...
             events, image, flow = self.to_device(item)
-            pred = self.model(events)
+            print('---> data argumentation')
+            pred = self.model(events)           # 这里的括号()调用了model.__call__()函数，
+            print('<--- data argumentation done')
             for loss_ftn in self.loss_ftns:
                 loss_name = loss_ftn.__class__.__name__
                 tmp_weight = loss_ftn.weight 
+                print('loss name: ', loss_name)
                 if all_losses:
                     loss_ftn.weight = 1.0
                 if loss_name == 'perceptual_loss':
@@ -92,6 +97,7 @@ class Trainer(BaseTrainer):
         losses = {f'{k}/{data_source}': mean(v) for k, v in losses.items()}
         losses['loss'] = sum(losses.values())
         losses[f'loss/{data_source}'] = losses['loss']
+        print('<==== out forward_sequence')
         return losses
 
     def _train_epoch(self, epoch):
@@ -101,23 +107,34 @@ class Trainer(BaseTrainer):
         :param epoch: Integer, current training epoch.
         :return: A log that contains average loss and metric in this epoch.
         """
+        print('====> In trainer.__train_epoch')
+        print('valid_only: ', self.valid_only)
         if self.valid_only:
+            print('in self.valid_only')
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
                 return {'val_' + k : v for k, v in val_log.items()}
-        self.model.train()              # TODO:
+        print('1111111111111111')
+        self.model.train()                  # model.train() 是pytorch训练的函数
+        # print('self model: ', self.model)     # model 是 E2VIDRecurrent
+        print('222222222222222')
         self.train_metrics.reset()      # 将pd.DataFrame的内容全部设置为0
+        print('self.data_loader: ', self.data_loader)
         for batch_idx, sequence in enumerate(self.data_loader):
+            print('batch_idx: ', batch_idx)
             self.optimizer.zero_grad()
+            print('----------model-  0  ---------------')
             losses = self.forward_sequence(sequence)
+            print('-----------  1  ---------------')
             loss = losses['loss']
             loss.backward()
             self.optimizer.step()
+            print('111')
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)  # self.writer在base_trainer中定义为 TensorboardWriter
             for k, v in losses.items():
                 self.train_metrics.update(k, v.item())
-
+            print('222')
             if batch_idx % self.log_step == 0:
                 msg = 'Train Epoch: {} {}'.format(epoch, self._progress(batch_idx, self.data_loader))
                 for k, v in losses.items():
@@ -127,7 +144,7 @@ class Trainer(BaseTrainer):
             if batch_idx < self.num_previews and (epoch - 1) % self.save_period == 0:
                 with torch.no_grad():
                     self.preview(sequence, epoch, tag_prefix=f'train_{batch_idx}')
-
+            print('333')
             if batch_idx == self.len_epoch:
                 break
         log = self.train_metrics.result()
@@ -141,6 +158,7 @@ class Trainer(BaseTrainer):
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()        # 调整学习率。需要在optimizer.step()之后调用
         self.true_once = False
+        print('====> In trainer.__train_epoch. Done')
         return log
 
     def _valid_epoch(self, epoch):

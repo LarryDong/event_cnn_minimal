@@ -96,12 +96,14 @@ class CenterCrop(object):
     """
 
     def __init__(self, size, preserve_mosaicing_pattern=False):
+        print('====> CenterCrop init')
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size))
         else:
             self.size = size
 
         self.preserve_mosaicing_pattern = preserve_mosaicing_pattern
+        print('====> CenterCrop init done')
 
     def __call__(self, x, is_flow=False):
         """
@@ -209,17 +211,22 @@ class LegacyNorm(object):
         format_string = self.__class__.__name__
         return format_string
 
-class RandomCrop(object):
-    """Crop the tensor at a random location.
-    """
 
+# 在data_loader/valid_data_loader加载时，被obj_init初始化了，参数来自.json
+# 继承object后可以获取更多的对象，例如__call__等；
+class RandomCrop(object):       
+    """Crop the tensor at a random location.        
+    """
     def __init__(self, size, preserve_mosaicing_pattern=False):
+        # print('===============================================')
+        print('====> RandomCrop init')
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size))
         else:
             self.size = size
 
         self.preserve_mosaicing_pattern = preserve_mosaicing_pattern
+        print('<==== RandomCrop init done')
 
     @staticmethod
     def get_params(x, output_size):
@@ -238,7 +245,7 @@ class RandomCrop(object):
 
     # 即 __call__()。该方法的功能类似于在类中重载 () 运算符，使得类实例对象可以像调用普通函数那样，以“对象名()”的形式使用。
     def __call__(self, x, is_flow=False):
-        print('====> in __call__')
+        print('====> in RandomCrop\'s __call__')
         """
             x: [C x H x W] Tensor to be rotated.
             is_flow: this parameter does not have any effect
@@ -246,6 +253,7 @@ class RandomCrop(object):
             Tensor: Cropped tensor.
         """
         i, j, h, w = self.get_params(x, self.size)
+        a,b, i, j, h, w = self.get_params(x, self.size)
 
         if self.preserve_mosaicing_pattern:
             # make sure that i and j are even, to preserve the mosaicing pattern

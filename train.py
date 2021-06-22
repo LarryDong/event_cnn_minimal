@@ -65,7 +65,9 @@ def main(config):
     在init_obj函数内部，首先根据传入的名字('data_loader')从config中确定type为HDF5格式，并读取了相关配置参数为module_args
     之后对参数进行更新（及如果传入了关键参数，则更新；否则默认使用config中的全部配置）
     之后调用getattr()(args, module_args)时，getattr()获取了module的'hdf5'属性，attr(args, module_args)相当于进行了HDF5DataLoader的初始化(__init__)
-    在HDF5DataLoader的__init__中进行了相关参数配置
+    具体包括：
+    1. 在HDF5DataLoader的__init__中进行了相关参数配置
+    2. 在RandomCrop中设定了随机截取的尺寸和大小    
     '''
     print("<===== Init obj. data_loader done")
 
@@ -100,7 +102,7 @@ def main(config):
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())        # filter(func, iter), 保留可迭代器iter中满足func的对象
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
-    print("======>  init optimizer done")
+    print("<======  init optimizer done")
 
     print("======>  init Trainer")
     trainer = Trainer(model, loss_ftns, optimizer,          # TODO:

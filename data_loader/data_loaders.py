@@ -27,6 +27,9 @@ class HDF5DataLoader(DataLoader):
         # print('batch_size: ', batch_size, 'shuffle: ', shuffle, 'num_workers: ', num_workers, 'pin_memory: ', pin_memory)
         # print('data file: ', data_file, 'sequence_kwargs: ', sequence_kwargs)
         dataset = concatenate_datasets(data_file, SequenceDataset, sequence_kwargs)
+        print('=================== dataset =================== ')
+        print(dataset)
+        print('=================== dataset =================== ')
         super().__init__(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=pin_memory)
 
 

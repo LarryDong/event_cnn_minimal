@@ -558,6 +558,7 @@ class SequenceDataset(Dataset):  # TODO:
         return self.length
 
     def __getitem__(self, i):
+        print('????????????????????????')
         """ Returns a list containing synchronized events <-> frame pairs
             [e_{i-L} <-> I_{i-L},
              e_{i-L+1} <-> I_{i-L+1},
