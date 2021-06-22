@@ -28,11 +28,12 @@ pip install pytorch torchvision cudatoolkit=$cuda_version
 # 出错：
 # CondaHTTPError: HTTP 000 CONNECTION FAILED for url <https://conda.anaconda.org/conda-forge/linux-64/repodata.json>
 # 去掉 -c conda-forge 
-pip install -y  opencv
-pip install -y tqdm
-pip install -y   h5py 
-pip install -y   pandas
-pip install -y   scikit-image
+conda install -y -c conda-forge opencv
+# pip install   opencv
+pip install  tqdm
+pip install    h5py 
+pip install    pandas
+pip install    scikit-image
 pip install thop --user
 ```
 
