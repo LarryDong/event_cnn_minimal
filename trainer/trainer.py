@@ -114,13 +114,13 @@ class Trainer(BaseTrainer):
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
                 return {'val_' + k : v for k, v in val_log.items()}
-        print('1111111111111111')
+        
         self.model.train()                  # model.train() 是pytorch训练的函数
         # print('self model: ', self.model)     # model 是 E2VIDRecurrent
-        print('222222222222222')
+        
         self.train_metrics.reset()      # 将pd.DataFrame的内容全部设置为0
-        print('self.data_loader: ', self.data_loader)
-        for batch_idx, sequence in enumerate(self.data_loader):
+        # print('self.data_loader: ', self.data_loader)     # self.data_loader = HDF5DataLoader
+        for batch_idx, sequence in enumerate(self.data_loader):     # 获得一个 item 数据，包含image/frame...
             print('batch_idx: ', batch_idx)
             self.optimizer.zero_grad()
             print('----------model-  0  ---------------')

@@ -77,19 +77,22 @@ class BaseTrainer:
         print('=====> train begin ......')
         not_improved_count = 0
         for epoch in range(self.start_epoch, self.epochs + 1):
-            print('epoch: ', epoch)             # TODO:
+            print('epoch: ', epoch)
+
+            # 这里是每次迭代的核心函数
             result = self._train_epoch(epoch)
+            print('Congrad! _train_epoch done for the first time!!!')
+            # 
+            
             self.add_dict(result, epoch)
-            print('in epoch. 1')
 
             # save logged information into log dict
             log = {'epoch': epoch}
             log.update(result)              # SEARCH:
-            print('in epoch. 2')
             # print logged information to the screen
             for key, value in log.items():
                 self.logger.info('    {:15s}: {}'.format(str(key), value))
-            print('in epoch. 3')
+                
             # evaluate model performance according to configured metric, save best checkpoint as model_best
             best = False
             if self.mnt_mode != 'off':      # mnt: monitor
@@ -115,11 +118,8 @@ class BaseTrainer:
                                      "Training stops.".format(self.early_stop))
                     break
 
-            print('in epoch. 4')
-
             if epoch % self.save_period == 0 or best:
                 self._save_checkpoint(epoch, save_best=best)
-            print('in epoch. done')
 
     def _prepare_device(self, n_gpu_use):
         """

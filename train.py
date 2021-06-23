@@ -75,6 +75,7 @@ def main(config):
     print("=====> Init obj. valid_data_loader")
     valid_data_loader = config.init_obj('valid_data_loader', module_data)
     print("<===== Init obj. valid_data_loader done")
+    
 
     # build model architecture, then print to console
     # 用module_arch初始化 config 中的'arch'参数， 命名为model。module_arch是自己定义的

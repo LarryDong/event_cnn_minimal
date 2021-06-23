@@ -259,7 +259,7 @@ class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
         final_activation = unet_kwargs.pop('final_activation', 'none')
         # getattr，获得对象的属性值。getattr(a, 'bar2', 3)  属性 bar2 不存在，但设置了默认值
         self.final_activation = getattr(torch, final_activation, None)
-        print(f'Using {self.final_activation} final activation')
+        # # print(f'Using {self.final_activation} final activation')
         unet_kwargs['num_output_channels'] = 1
         print('1-st, init BaseUNet')
         super().__init__(**unet_kwargs)

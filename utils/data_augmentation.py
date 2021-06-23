@@ -23,16 +23,20 @@ from typing import Union
     on Torch Tensor variables, and that allow to transform an optic flow field as well.
 """
 
+# 1.3.4函数在dataset.py中的SequenceDataset的getitem时调用，
+# 根据参数，使用不同方法对数据进行增强。
+
 def normalize_image_sequence_(sequence, key='frame'):
     images = torch.stack([item[key] for item in sequence], dim=0)
     mini = np.percentile(torch.flatten(images), 1)
     maxi= np.percentile(torch.flatten(images), 99)
     images = (images - mini) / (maxi - mini + 1e-5)
     images = torch.clamp(images, 0, 1)
+    # print('aaaaaaaaaaaaaaaa')
     for i, item in enumerate(sequence):
         item[key] = images[i, ...]
 
-
+# 这个函数没有用到
 def put_hot_pixels_in_voxel_(voxel, hot_pixel_range=1.0, hot_pixel_fraction=0.001):
     num_hot_pixels = int(hot_pixel_fraction * voxel.shape[-1] * voxel.shape[-2])
     x = torch.randint(0, voxel.shape[-1], (num_hot_pixels,))
@@ -50,12 +54,14 @@ def add_hot_pixels_to_sequence_(sequence, hot_pixel_std=1.0, max_hot_pixel_fract
     val = torch.randn(num_hot_pixels, dtype=voxel.dtype, device=voxel.device)
     val *= hot_pixel_std
     # TODO multiprocessing
+    # print('bbbbbbbbbbbbbbbbbb')
     for item in sequence:
         for i in range(num_hot_pixels):
             item['events'][..., :, y[i], x[i]] += val[i]
 
 
 def add_noise_to_voxel(voxel, noise_std=1.0, noise_fraction=0.1):
+    # print('ccccccccccccccccc')
     noise = noise_std * torch.randn_like(voxel)  # mean = 0, std = noise_std
     if noise_fraction < 1.0:
         mask = torch.rand_like(voxel) >= noise_fraction
@@ -80,6 +86,8 @@ class Compose(object):
     def __call__(self, x, is_flow=False):
         for t in self.transforms:
             x = t(x, is_flow)
+            # t 是某种操作，这里调用了 RandomCrop 。请看上面作者的注释
+            # RandomCrop() 调用了 __call__方法，对图像进行crop
         return x
 
     def __repr__(self):
@@ -96,14 +104,14 @@ class CenterCrop(object):
     """
 
     def __init__(self, size, preserve_mosaicing_pattern=False):
-        print('====> CenterCrop init')
+        # print('====> CenterCrop init')
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size))
         else:
             self.size = size
 
         self.preserve_mosaicing_pattern = preserve_mosaicing_pattern
-        print('====> CenterCrop init done')
+        # print('====> CenterCrop init done')
 
     def __call__(self, x, is_flow=False):
         """
@@ -212,21 +220,20 @@ class LegacyNorm(object):
         return format_string
 
 
-# 在data_loader/valid_data_loader加载时，被obj_init初始化了，参数来自.json
+# 在data_loader/valid_data_loader加载时，被init_obj初始化了，参数来自.json
 # 继承object后可以获取更多的对象，例如__call__等；
 class RandomCrop(object):       
     """Crop the tensor at a random location.        
     """
     def __init__(self, size, preserve_mosaicing_pattern=False):
-        # print('===============================================')
-        print('====> RandomCrop init')
+        # print('====> RandomCrop init')
         if isinstance(size, numbers.Number):
             self.size = (int(size), int(size))
         else:
             self.size = size
 
         self.preserve_mosaicing_pattern = preserve_mosaicing_pattern
-        print('<==== RandomCrop init done')
+        # print('<==== RandomCrop init done')
 
     @staticmethod
     def get_params(x, output_size):
@@ -245,7 +252,7 @@ class RandomCrop(object):
 
     # 即 __call__()。该方法的功能类似于在类中重载 () 运算符，使得类实例对象可以像调用普通函数那样，以“对象名()”的形式使用。
     def __call__(self, x, is_flow=False):
-        print('====> in RandomCrop\'s __call__')
+        # print('====> in RandomCrop\'s __call__')
         """
             x: [C x H x W] Tensor to be rotated.
             is_flow: this parameter does not have any effect
@@ -253,7 +260,7 @@ class RandomCrop(object):
             Tensor: Cropped tensor.
         """
         i, j, h, w = self.get_params(x, self.size)
-        a,b, i, j, h, w = self.get_params(x, self.size)
+        # a,b, i, j, h, w = self.get_params(x, self.size)
 
         if self.preserve_mosaicing_pattern:
             # make sure that i and j are even, to preserve the mosaicing pattern

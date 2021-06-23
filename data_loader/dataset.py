@@ -109,7 +109,6 @@ class BaseVoxelDataset(Dataset):
         self.transform applies to event voxels, frames and flow.
         self.vox_transform applies to event voxels only.
         """
-
         self.num_bins = num_bins
         self.data_path = data_path
         self.combined_voxel_channels = combined_voxel_channels
@@ -155,7 +154,7 @@ class BaseVoxelDataset(Dataset):
                 vox_transforms_list = [eval(t)(**kwargs) for t, kwargs in transforms.items()]
                 del (transforms[norm])
                 self.normalize_voxels = True
-                self.vox_transform = Compose(vox_transforms_list)
+                self.vox_transform = Compose(vox_transforms_list)   # 这里初始化了Compose
                 break
 
         transforms_list = [eval(t)(**kwargs) for t, kwargs in transforms.items()]
@@ -227,6 +226,7 @@ class BaseVoxelDataset(Dataset):
                     'timestamp': torch.tensor(ts_k, dtype=torch.float64),
                     'data_source_idx': self.data_source_idx,
                     'dt': torch.tensor(dt, dtype=torch.float64)}
+        # print(item)
         return item
 
     def compute_frame_indices(self):
@@ -525,7 +525,19 @@ class MemMapDataset(BaseVoxelDataset):
                 print("Inferred sensor resolution: {}".format(self.sensor_resolution))
 
 
-class SequenceDataset(Dataset):  # TODO: 
+'''
+pytorch教程：
+当自定义Dataset时，继承Dataset后，需要重写：__init__, getitiem, len三个函数
+The __getitem__ function loads and returns a sample from the dataset at the given index [idx]
+
+这里的SequenceDataset继承了Dataset，并重写·了__getitiem__方法
+在__getitiem__中调用了 self.dataset.__getitem__，及 DynamicH5Dataset 的__getitem__方法
+而DyanmicH5Dataset并没有定义getitem，故使用的是继承的BaseVoxelDataset的getitem(这个继承了Dataset，重写了默认的getitem)
+
+故在enumerate一个 HDF5DataLoader时，实际调用了BaseVoxelDataset的getitem来产生一组数据。
+在BaseVoxelDataset的getitem方法中，调用了Compose，Compose中又调用了RandomCrop等方法，最终得到数据。
+'''
+class SequenceDataset(Dataset):
     """Load sequences of time-synchronized {event tensors + frames} from a folder."""
     def __init__(self, data_root, sequence_length, dataset_type='MemMapDataset',
             step_size=None, proba_pause_when_running=0.0,
@@ -543,12 +555,10 @@ class SequenceDataset(Dataset):  # TODO:
         assert(self.L > 0)
         assert(self.step_size > 0)
 
-        # print('222')
-        # print('dataset_type: ', dataset_type)
-        # print(eval(dataset_type))
+        # print(eval(dataset_type))         # data_loader.dataset.DynamicH5Dataset `object`
+        self.dataset = eval(dataset_type)(data_root, **dataset_kwargs)   # 初始化了一个 DynamicH5Dataset，给self.dataset
+        # print(self.dataset)               # `class` 'data_loader.dataset.DynamicH5Dataset'
 
-        self.dataset = eval(dataset_type)(data_root, **dataset_kwargs)
-        # print('333')
         if self.L >= self.dataset.length:
             self.length = 0
         else:
@@ -558,7 +568,7 @@ class SequenceDataset(Dataset):  # TODO:
         return self.length
 
     def __getitem__(self, i):
-        print('????????????????????????')
+        
         """ Returns a list containing synchronized events <-> frame pairs
             [e_{i-L} <-> I_{i-L},
              e_{i-L+1} <-> I_{i-L+1},
@@ -581,7 +591,10 @@ class SequenceDataset(Dataset):  # TODO:
         # add the first element (i.e. do not start with a pause)
         k = 0
         j = i * self.step_size
-        item = self.dataset.__getitem__(j, seed)
+
+        # print(self.dataset)                         # 这里的 self.dataset 是 DynamicH5Dataset
+        item = self.dataset.__getitem__(j, seed)    # item 是四元组。frame/event/ts...
+
         sequence.append(item)
 
         paused = False
@@ -620,5 +633,7 @@ class SequenceDataset(Dataset):  # TODO:
         # normalize image
         if self.normalize_image:
             normalize_image_sequence_(sequence, key='frame')
+
+        # print(sequence)       # 这里的sequence变成了 frame/event/... 的tensor
         return sequence
 
