@@ -20,6 +20,7 @@ def ensure_dir(dirname):
 def read_json(fname):
     fname = Path(fname)
     with fname.open('rt') as handle:
+        # rt模式下，python在读取文本时会自动把\r\n(windows下换行)转换成\n.wt模式下，Python写文件时会用\r\n来表示换行
         return json.load(handle, object_hook=OrderedDict)
 
 

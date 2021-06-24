@@ -24,17 +24,20 @@ class ConfigParser:
 
         # set save_dir where trained model and log will be saved.
         save_dir = Path(self.config['trainer']['save_dir'])
+        # self._config is self.config
+        # True
 
         exper_name = self.config['name']
         if run_id is None: # use timestamp as default run-id
             run_id = datetime.now().strftime(r'%m%d_%H%M%S')       # 接收间元组，并返回以可读字符串表示的当地时间，格式由参数format 决定。
-        self._save_dir = save_dir / 'models' / exper_name / run_id  # ASK: / 是啥意思
+        self._save_dir = save_dir / 'models' / exper_name / run_id  # ASK: / 是啥意思  路径拼接的方式
         self._log_dir = save_dir / 'log' / exper_name / run_id
 
         # make directory for saving checkpoints and log.
-        exist_ok = run_id == ''
+        exist_ok = run_id == '' # 如果当前目录存在是否ok(抛出异常)的问题，False就是不ok，抛出异常
         self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
         self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
+        # parents=True 中间父文件夹不存在时创建
 
         # save updated config file to the checkpoint dir
         write_json(self.config, self.save_dir / 'config.json')
@@ -47,13 +50,19 @@ class ConfigParser:
             2: logging.DEBUG
         }
 
-    @classmethod                # classmethod修饰符对应的函数不需要实例化，不需要 self 参数，但第一个参数需要是表示自身类的cls参数，可以来调用类的属性，类的方法，实例化对象等。
+    @classmethod                
+    # classmethod修饰符对应的函数不需要实例化，不需要 self 参数，但第一个参数需要是表示自身类的cls参数，可以来调用类的属性，类的方法，实例化对象等。
     def from_args(cls, args, options=''):
         """
         Initialize this class from some cli arguments. Used in train, test.
         """
         for opt in options:
-            args.add_argument(*opt.flags, default=None, type=opt.type)
+            args.add_argument(*opt.flags, default=None, type=opt.type) # 也就相当于train.py中的前几句。。。。
+            # opt 就是一个可以用属性访问的tuple子类，opt.flags为列表
+            # dir 可以查看对象的属性
+            # dir(opt)
+            # ['__add__', 。。。。。。 '_make', '_replace', 'count', 'flags', 'index', 'target', 'type']
+            # hasattr(args, "lr") 检查是否存在属性
         if not isinstance(args, tuple):
             args = args.parse_args()
 
@@ -64,7 +73,7 @@ class ConfigParser:
             cfg_fname = resume.parent / 'config.json'
         else:
             msg_no_cfg = "Configuration file need to be specified. Add '-c config.json', for example."
-            assert args.config is not None, msg_no_cfg
+            assert args.config is not None, msg_no_cfg # 这个用法有意思
             resume = None
             cfg_fname = Path(args.config)
 
@@ -75,6 +84,8 @@ class ConfigParser:
 
         # parse custom cli options into dictionary
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
+        # 第一次运行结果：
+        # {'optimizer;args;lr': None, 'data_loader;args;batch_size': None, 'trainer;reset_monitor_best': None, 'trainer;valid_only': None}
         return cls(config, resume, modification)
 
     def init_obj(self, name, module, *args, **kwargs):  # *可选参数 **关键参数
@@ -159,4 +170,10 @@ def _set_by_path(tree, keys, value):
 
 def _get_by_path(tree, keys):
     """Access a nested object in tree by sequence of keys."""
-    return reduce(getitem, keys, tree)
+    return reduce(getitem, keys, tree) 
+    # 这个操作可以
+    # >>> d = {"a": {"b": {"c": 4}}}
+    # >>> l = ["a","b","c"]
+    # >>> from operator import getitem
+    # >>> reduce(getitem, l, d)
+    # 4

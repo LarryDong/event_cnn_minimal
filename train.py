@@ -8,6 +8,7 @@ import model.model as module_arch
 from parse_config import ConfigParser       # 自己定义的模块
 from trainer import Trainer
 
+
 # zhujun
 
 # fix random seeds for reproducibility
@@ -126,15 +127,41 @@ if __name__ == '__main__':
     # --limited_memory   limited_memory是属性的名字， --代表可选，没有这两小横表示位置参数，必须指定
 
     # custom cli options to modify configuration from default values given in json file.
-    CustomArgs = collections.namedtuple('CustomArgs', 'flags type target')  # namedtuple: 利用别名访问tuple元素，依次是 flags/type/target
-    options = [
+    CustomArgs = collections.namedtuple('CustomArgs_test', 'flags type target')  # namedtuple: 利用别名访问tuple元素，依次是 flags/type/target
+    # namedtuple是继承自tuple的子类。namedtuple创建一个和tuple类似的对象，而且对象拥有可访问的属性。
+    # 原型：
+    #       collections.namedtuple(typename, field_names, *, rename=False, defaults=None, module=None)
+    # typename 
+    #   返回的是一个名为 typename 的元组子类。这个返回的子类用于创建类似元组的对象，这些对象具有可通过属性查找访问的字段以及可索引和可迭代的字段。
+    # field_names
+    #   field_names 是形如 [ 'x', 'y' ] 的字符串序列。或者为另外两种形式，以逗号或空格分隔的字符串，如 ‘x, y' 和 ’x y'。
+    #   除下划线开头的名称外，任何有效的 Python 标识符均可用于 fieldname。有效标识符由字母，数字和下划线组成，
+    #   但不能以数字或下划线开头，并且不能是诸如class，for，return，global，pass或raise之类的关键字。
+    options = [ # 为啥用两个短横？？？？？？
         CustomArgs(['--lr', '--learning_rate'], type=float, target='optimizer;args;lr'),
+        # 有点像字典的元组：CustomArgs_test(flags=['--lr', '--learning_rate'], type=<class 'float'>, target='optimizer;args;lr')
+        # options[0].flags
+        # ['--lr', '--learning_rate']
+        # options[0][0]
+        # ['--lr', '--learning_rate']
         CustomArgs(['--bs', '--batch_size'], type=int, target='data_loader;args;batch_size'),
         CustomArgs(['--rmb', '--reset_monitor_best'], type=bool, target='trainer;reset_monitor_best'),
         CustomArgs(['--vo', '--valid_only'], type=bool, target='trainer;valid_only')
     ]
+    import pdb;pdb.set_trace()
+    # c：（continue）继续执行，直到遇到下一条断点
+    # s：（step）执行当前语句，如果本句是函数调用，则s会执行到函数的第一句
+    # n：（next）执行当前语句，如果本句是函数调用，则完整执行函数，接着指向当前执行语句的下一句。
+    # r：（return）执行当前运行函数到return,如果本句是函数调用，则s会执行到函数的第一句，如果在函数外且不是函数调用则相当于s
+    # a：（args）列出当前执行函数的参数
+    # l：（list）列出当前执行语句周围11条代码
+    # b：（break）添加断点
+    #     b 列出当前所有断点，和断点执行到统计次数
+    #     b line_no(行数)：当前脚本的line_no行添加断点
+    # tbreak：（temporary break）临时断点  在第一次执行到这个断点之后，就自动删除这个断点，用法和b一样
+    # cl：（clear）清除断点
+    #     cl lineno 清除当前脚本lineno行的断点，不太好用。。。
     config = ConfigParser.from_args(args, options)
-
     if args.parse_args().limited_memory:
         # https://github.com/pytorch/pytorch/issues/11201#issuecomment-421146936
         import torch.multiprocessing
