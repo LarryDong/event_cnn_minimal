@@ -288,7 +288,9 @@ class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
         """
 
         # head
-        x = self.head(x)
+        print('eeeeeeeeeeeeeeeeeeeeeee')
+        x = self.head(x)           # TODO:
+        print('ffffffffffffffffffff')
         head = x
 
         # encoder

@@ -121,6 +121,7 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()      # 将pd.DataFrame的内容全部设置为0
         # print('self.data_loader: ', self.data_loader)     # self.data_loader = HDF5DataLoader
         for batch_idx, sequence in enumerate(self.data_loader):     # 获得一个 item 数据，包含image/frame...
+            # batch size 是16，每个进行5切片（论文），故sequene的数量是80个item
             print('batch_idx: ', batch_idx)
             self.optimizer.zero_grad()
             print('----------model-  0  ---------------')

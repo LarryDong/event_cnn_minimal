@@ -260,7 +260,6 @@ class RandomCrop(object):
             Tensor: Cropped tensor.
         """
         i, j, h, w = self.get_params(x, self.size)
-        # a,b, i, j, h, w = self.get_params(x, self.size)
 
         if self.preserve_mosaicing_pattern:
             # make sure that i and j are even, to preserve the mosaicing pattern
