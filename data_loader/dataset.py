@@ -195,7 +195,7 @@ class BaseVoxelDataset(Dataset):
             ts = torch.from_numpy((ts-ts_0).astype(np.float32))
             ps = torch.from_numpy(ps.astype(np.float32))
             voxel = self.get_voxel_grid(xs, ys, ts, ps, combined_voxel_channels=self.combined_voxel_channels)
-
+        # import pdb;pdb.set_trace()
         voxel = self.transform_voxel(voxel, seed).float()
         dt = ts_k - ts_0
         if dt == 0:
@@ -546,9 +546,12 @@ class SequenceDataset(Dataset):  # TODO:
         # print('222')
         # print('dataset_type: ', dataset_type)
         # print(eval(dataset_type))
-
+        # import pdb;pdb.set_trace()
         self.dataset = eval(dataset_type)(data_root, **dataset_kwargs)
-        # print('333')
+        # cls = <class 'data_loader.dataset.DynamicH5Dataset'>
+        # args = ('/home/zhujun/Documents/data/e2vid/train/000001409_out.h5',)
+        # kwds = {'transforms': OrderedDict([('RandomCrop', OrderedDict([('size', 112)])), ('RandomFlip', OrderedDict())]), 'num_bins': 5}
+ 
         if self.L >= self.dataset.length:
             self.length = 0
         else:

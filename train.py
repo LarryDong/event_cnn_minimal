@@ -148,7 +148,7 @@ if __name__ == '__main__':
         CustomArgs(['--rmb', '--reset_monitor_best'], type=bool, target='trainer;reset_monitor_best'),
         CustomArgs(['--vo', '--valid_only'], type=bool, target='trainer;valid_only')
     ]
-    import pdb;pdb.set_trace()
+    # import pdb;pdb.set_trace()
     # c：（continue）继续执行，直到遇到下一条断点
     # s：（step）执行当前语句，如果本句是函数调用，则s会执行到函数的第一句
     # n：（next）执行当前语句，如果本句是函数调用，则完整执行函数，接着指向当前执行语句的下一句。

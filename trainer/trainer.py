@@ -236,7 +236,9 @@ class Trainer(BaseTrainer):
         self.writer.add_histogram(f'{tag_prefix}_image/prediction',
                                   torch.stack(pred_images))
         video_tensor = make_flow_movie(event_previews, pred_images, images, pred_flows, flows)
-        self.writer.writer.add_video(f'{tag_prefix}', video_tensor, global_step=epoch, fps=20)
+        # import pdb;pdb.set_trace()
+        # self.writer.writer.add_video(f'{tag_prefix}', video_tensor, global_step=epoch, fps=20)
+        self.writer.add_video(f'{tag_prefix}', video_tensor, global_step=epoch, fps=20)
 
     def get_loss_ftn(self, loss_name):
         for loss_ftn in self.loss_ftns:

@@ -20,6 +20,17 @@ class ConfigParser:
         """
         # load config file and apply modification
         self._config = _update_config(config, modification)
+        # （1）_xxx      " 单下划线 " 开始的成员变量叫做保护变量，意思是只有类实例和子类实例能访问到这些变量，
+        # 需通过类提供的接口进行访问； 不能用'from module import *'导入
+        # （2）__xxx    类中的私有变量/方法名 （Python的函数也是对象，所以成员方法称为成员变量也行得通。）,
+        # " 双下划线 " 开始的是私有成员，意思是 只有类对象自己能访问，连子类对象也不能访问到这个数据。
+
+        # 为了保证不能在class之外访问私有变量，Python会在类的内部自动的把我们定义的__spam私有变量的名字替换成为
+        # _classname__spam(注意，classname前面是一个下划线，spam前是两个下划线)，因此，用户在外部访问__spam的时候就会
+        # 提示找不到相应的变量。   python中的私有变量和私有方法仍然是可以访问的；访问方法如下：
+        # 私有变量:实例._类名__变量名
+        # 私有方法:实例._类名__方法名() 所以还是能够访问！！！
+
         self.resume = resume
 
         # set save_dir where trained model and log will be saved.
@@ -97,15 +108,20 @@ class ConfigParser:
         `object = config.init_obj('name', module, a, b=1)` is equivalent to
         `object = module.name(a, b=1)`
         """
-        module_name = self[name]['type']        # ASK: [] 是什么意思。这里的self？ Re: 好像得到的是调用这个函数的config中的[name][type] Re2: 看上方作者的注释
+        module_name = self[name]['type']  # HDF5DataLoader
         module_args = dict(self[name]['args'])
+        # 第一次执行的时候这里的self就是reconstruction.json生成的字典，name为data_loader
         
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
+        # all() 函数用于判断给定的可迭代参数 iterable 中的所有元素是否都为 TRUE，如果是返回 True，否则返回 False。
+        # 元素除了是 0、空、None、False 外都算 True。
         module_args.update(kwargs)
-        print('module_name: ', module_name)
-        print("module: ", module)
-        print('module_args: ', module_args)
-        return getattr(module, module_name)(*args, **module_args)
+        # dict.update(dict2) 把字典dict2的键/值对更新到dict里。有相同的键会直接替换成 update 的值:
+        # import pdb;pdb.set_trace()
+        return getattr(module, module_name)(*args, **module_args) # getattr() 函数用于返回一个对象属性值。
+        # 第一次运行用(*args, **module_args)来初始化 class 'data_loader.data_loaders.HDF5DataLoader'
+        # 注意在使用元组将其值映射到args时使用*。 同样，**用于将字典映射到kwargs变量。
+        # args是元组，module_args是字典，不是c++中的指针！！！！
 
     def init_ftn(self, name, module, *args, **kwargs):
         """
@@ -128,15 +144,15 @@ class ConfigParser:
     def get_logger(self, name, verbosity=2):
         msg_verbosity = 'verbosity option {} is invalid. Valid options are {}.'.format(verbosity, self.log_levels.keys())
         assert verbosity in self.log_levels, msg_verbosity
-        logger = logging.getLogger(name)
-        logger.setLevel(self.log_levels[verbosity])
+        logger = logging.getLogger(name) # 创建logger实例
+        logger.setLevel(self.log_levels[verbosity]) # 设置日志级别，即只有日志级别大于等于设置的级别才会输出！！
         return logger
 
     # setting read-only attributes
     # 关于 property:  由于python进行属性的定义时，没办法设置私有属性，因此要通过@property的方法来进行设置。这样可以隐藏属性名，让用户进行使用的时候无法随意修改。
     # 访问时不需要加括号()，即可当作成员函数进行访问
-    @property
-    def config(self):
+    @property # 设置读getter属性，没有设置setter属性，因此为只读！不能更改！
+    def config(self): 
         return self._config
 
     @property

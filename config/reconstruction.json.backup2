@@ -1,77 +1,77 @@
 {
-    "name": "evflownet",
+    "name": "reconstruction",
     "n_gpu": 1,
     "arch": {
-        "type": "EVFlowNet",
+        "type": "E2VIDRecurrent",
         "args": {
             "unet_kwargs": {
-                "num_bins": 5,
+                "num_bins": 10,
+                "skip_type": "sum",
+                "recurrent_block_type": "convlstm",
+                "num_encoders": 3,
                 "base_num_channels": 32,
-                "num_encoders": 4,
                 "num_residual_blocks": 2,
-                "num_output_channels": 2,
-                "skip_type": "concat",
-                "norm": null,
                 "use_upsample_conv": true,
-                "kernel_size": 3,
-                "channel_multiplier": 2
+                "final_activation": "",
+                "norm": "none"
             }
         }
     },
     "data_loader": {
-        "type": "DynamicH5DataLoader",
+        "type": "HDF5DataLoader",
         "args": {
             "data_file": "/home/zhujun/Documents/data/e2vid/train.csv",
-            "batch_size": 32,
+            "batch_size": 2,
             "shuffle": true,
-            "num_workers": 1,
+            "num_workers": 0,
             "pin_memory": true,
             "sequence_kwargs": {
-                "sequence_length": 8,
+                "sequence_length": 40,
                 "dataset_type": "DynamicH5Dataset",
-                "proba_pause_when_running": 0.0,
-                "proba_pause_when_paused": 0.0,
+                "proba_pause_when_running": 0.05,
+                "proba_pause_when_paused": 0.9,
                 "normalize_image": false,
                 "noise_kwargs": {
-                    "noise_std": 0.0,
-                    "noise_fraction": 0.0
+                    "noise_std": 0.1,
+                    "noise_fraction": 1.0
                 },
                 "hot_pixel_kwargs": {
-                    "hot_pixel_std": 0.0,
-                    "max_hot_pixel_fraction": 0.0
+                    "hot_pixel_std": 0.1,
+                    "max_hot_pixel_fraction": 0.001
                 },
                 "dataset_kwargs": {
                     "transforms": {
                         "RandomCrop": {
-                            "size": 64
+                            "size": 112
                         },
-                        "RandomFlip": {},
-                        "RobustNorm": {}
-                    }
+                        "RandomFlip": {}
+                    },
+                    "num_bins": 5
                 }
             }
         }
     },
     "valid_data_loader": {
-        "type": "DynamicH5DataLoader",
+        "type": "HDF5DataLoader",
         "args": {
             "data_file": "/home/zhujun/Documents/data/e2vid/valid.csv",
-            "batch_size": 16,
+            "batch_size": 1,
             "shuffle": false,
-            "num_workers": 1,
+            "num_workers": 0,
             "pin_memory": true,
             "sequence_kwargs": {
-                "sequence_length": 160,
+                "sequence_length": 320,
                 "dataset_type": "DynamicH5Dataset",
                 "normalize_image": true,
                 "dataset_kwargs": {
                     "max_length": 320,
                     "transforms": {
                         "CenterCrop": {
-                            "size": 60
-                        },
-                        "RobustNorm": {}
-                    }
+                            "size": 160
+                        }
+                    },
+                    "num_bins": 5,
+                    "combined_voxel_channels": false
                 }
             }
         }
@@ -85,11 +85,13 @@
         }
     },
     "loss_ftns": {
-        "flow_l1_loss": {
-            "weight": 0.0
+        "perceptual_loss": {
+            "weight": 1.0,
+            "net": "vgg"
         },
-        "warping_flow_loss": {
-            "weight": 10.0
+        "temporal_consistency_loss": {
+            "L0": 2,
+            "weight": 2.0
         }
     },
     "lr_scheduler": {
@@ -100,9 +102,9 @@
         }
     },
     "trainer": {
-        "epochs": 9,
+        "epochs": 200,
         "save_dir": "/home/zhujun/Documents/data/e2vid/model",
-        "save_period": 1,
+        "save_period": 5,
         "verbosity": 2,
         "monitor": "min loss",
         "num_previews": 4,

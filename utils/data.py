@@ -45,6 +45,7 @@ def concatenate_datasets(data_file, dataset_type, dataset_kwargs={}):
     dataset_list = []
     # print('Concatenating {} datasets'.format(dataset_type))
     # print('1111')
+    
     for data_path in tqdm(data_paths):
         dataset_list.append(dataset_type(data_path, **dataset_kwargs))
     # print('2222')

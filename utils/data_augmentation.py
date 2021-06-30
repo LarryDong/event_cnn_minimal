@@ -112,6 +112,8 @@ class CenterCrop(object):
         """
         w, h = x.shape[2], x.shape[1]
         th, tw = self.size
+        # import pdb;pdb.set_trace()
+        # print(w,h,th,tw)
         assert(th <= h)
         assert(tw <= w)
         i = int(round((h - th) / 2.))
@@ -225,6 +227,7 @@ class RandomCrop(object):
     def get_params(x, output_size):
         w, h = x.shape[2], x.shape[1]
         th, tw = output_size
+        # import pdb;pdb.set_trace()
         if th > h or tw > w:
             raise Exception("Input size {}x{} is less than desired cropped \
                     size {}x{} - input tensor shape = {}".format(w,h,tw,th,x.shape))
@@ -238,7 +241,7 @@ class RandomCrop(object):
 
     # 即 __call__()。该方法的功能类似于在类中重载 () 运算符，使得类实例对象可以像调用普通函数那样，以“对象名()”的形式使用。
     def __call__(self, x, is_flow=False):
-        print('====> in __call__')
+        # print('====> in __call__')
         """
             x: [C x H x W] Tensor to be rotated.
             is_flow: this parameter does not have any effect

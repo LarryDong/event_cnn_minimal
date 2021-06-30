@@ -23,9 +23,14 @@ class HDF5DataLoader(DataLoader):
     """
     def __init__(self, data_file, batch_size, shuffle=True, num_workers=1,
                  pin_memory=True, sequence_kwargs={}):
-        # print('====> in HDF5DataLoader __init__')
-        # print('batch_size: ', batch_size, 'shuffle: ', shuffle, 'num_workers: ', num_workers, 'pin_memory: ', pin_memory)
-        # print('data file: ', data_file, 'sequence_kwargs: ', sequence_kwargs)
+        # self = <data_loader.data_loaders.HDF5DataLoader object at 0x7f1923b9ad10>
+        # data_file = '/home/zhujun/Documents/data/e2vid/train.csv'
+        # batch_size = 2
+        # shuffle = True
+        # num_workers = 0
+        # pin_memory = True
+        # sequence_kwargs = OrderedDict([('sequence_length', 40),....
+
         dataset = concatenate_datasets(data_file, SequenceDataset, sequence_kwargs)
         super().__init__(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=pin_memory)
 

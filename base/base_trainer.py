@@ -68,7 +68,8 @@ class BaseTrainer:
                 k = f'{k[4:]}/valid'
             else:
                 k += '/train'
-            self.writer.writer.add_scalar(f'epoch_{k}', v, global_step=epoch)   # 将我们所需要的数据保存在文件里面供可视化使用
+            # self.writer.writer.add_scalar(f'epoch_{k}', v, global_step=epoch)   # 将我们所需要的数据保存在文件里面供可视化使用
+            self.writer.add_scalar(f'epoch_{k}', v, global_step=epoch) 
 
     def train(self):
         """

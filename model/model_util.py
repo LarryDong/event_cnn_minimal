@@ -1,4 +1,5 @@
 import copy
+from warnings import catch_warnings
 import numpy as np
 from math import fabs, ceil, floor
 import torch
@@ -8,7 +9,12 @@ from .default_config import default_config
 
 
 def skip_concat(x1, x2):
-    return torch.cat([x1, x2], dim=1)
+    # print(x1.shape,x2.shape)
+    # import pdb;pdb.set_trace()
+    try:
+        return torch.cat([x1, x2], dim=1)
+    except:
+        print(x1.shape,x2.shape)
 
 
 def skip_sum(x1, x2):
