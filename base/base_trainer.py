@@ -81,7 +81,7 @@ class BaseTrainer:
 
             # 这里是每次迭代的核心函数
             result = self._train_epoch(epoch)
-            print('Congrad! _train_epoch done for the first time!!!')
+            # print('Congrad! _train_epoch done for the first time!!!')
             # 
             
             self.add_dict(result, epoch)

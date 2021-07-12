@@ -195,7 +195,7 @@ class E2VIDRecurrent(BaseModel):            # TODO: E2VID 从这里开始
         :param event_tensor: N x num_bins x H x W
         :return: output dict with image taking values in [0,1], and displacement within event_tensor.
         """
-        print('--> in E2VIDRecurrent\'s forward()')
+        # print('--> in E2VIDRecurrent\'s forward()')
         output_dict = self.unetrecurrent.forward(event_tensor)
         return output_dict
 

@@ -267,6 +267,9 @@ class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
         self.head = ConvLayer(self.num_bins, self.base_num_channels,
                             kernel_size=self.kernel_size, stride=1,
                             padding=self.kernel_size // 2)  # N x C x H x W -> N x 32 x H x W
+        print("======= head =========")
+        print(self.head)            # conv2d (10, 32, kernal(5,5), strid(1,1), padding(2,2))
+        print("======= head =========")
 
         self.encoders = nn.ModuleList()
         for input_size, output_size in zip(self.encoder_input_sizes, self.encoder_output_sizes):
@@ -288,9 +291,11 @@ class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
         """
 
         # head
-        print('eeeeeeeeeeeeeeeeeeeeeee')
+        # print('eeeeeeeeeeeeeeeeeeeeeee')
+        # print('x size: ', list(x.size()))
+        # print(x)
         x = self.head(x)           # TODO:
-        print('ffffffffffffffffffff')
+        # print('ffffffffffffffffffff')
         head = x
 
         # encoder

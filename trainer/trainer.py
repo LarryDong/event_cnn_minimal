@@ -54,7 +54,7 @@ class Trainer(BaseTrainer):
 
     # 在_train_epoch中调用了self.forward_sequence
     def forward_sequence(self, sequence, all_losses=False):
-        print('====> in forward_sequence')
+        # print('====> in forward_sequence')
         # Python中通过Key访问字典，当Key不存在时，会引发‘KeyError’异常。为了避免这种情况的发生，可以使用collections类中的defaultdict()方法来为字典提供默认值。
         losses = collections.defaultdict(list)  
         # self.model 在trainer的init中的base_trainer的init中定义：self.model = model.to(self.device)
@@ -62,13 +62,13 @@ class Trainer(BaseTrainer):
         for i, item in enumerate(sequence):
             # print('i, iter: ', i, '  /  ', item)  # item: frame{}, events{}, ...
             events, image, flow = self.to_device(item)
-            print('---> data argumentation')
+            # print('---> data argumentation')
             pred = self.model(events)           # 这里的括号()调用了model.__call__()函数，
-            print('<--- data argumentation done')
+            # print('<--- data argumentation done')
             for loss_ftn in self.loss_ftns:
                 loss_name = loss_ftn.__class__.__name__
                 tmp_weight = loss_ftn.weight 
-                print('loss name: ', loss_name)
+                # print('loss name: ', loss_name)
                 if all_losses:
                     loss_ftn.weight = 1.0
                 if loss_name == 'perceptual_loss':
@@ -97,7 +97,7 @@ class Trainer(BaseTrainer):
         losses = {f'{k}/{data_source}': mean(v) for k, v in losses.items()}
         losses['loss'] = sum(losses.values())
         losses[f'loss/{data_source}'] = losses['loss']
-        print('<==== out forward_sequence')
+        # print('<==== out forward_sequence')
         return losses
 
     def _train_epoch(self, epoch):
@@ -107,10 +107,9 @@ class Trainer(BaseTrainer):
         :param epoch: Integer, current training epoch.
         :return: A log that contains average loss and metric in this epoch.
         """
-        print('====> In trainer.__train_epoch')
-        print('valid_only: ', self.valid_only)
-        if self.valid_only:
-            print('in self.valid_only')
+        # print('====> In trainer.__train_epoch')
+        # print('valid_only: ', self.valid_only)
+        if self.valid_only:             # 这里一直是false，故没有执行过。
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
                 return {'val_' + k : v for k, v in val_log.items()}
@@ -122,20 +121,18 @@ class Trainer(BaseTrainer):
         # print('self.data_loader: ', self.data_loader)     # self.data_loader = HDF5DataLoader
         for batch_idx, sequence in enumerate(self.data_loader):     # 获得一个 item 数据，包含image/frame...
             # batch size 是16，每个进行5切片（论文），故sequene的数量是80个item
-            print('batch_idx: ', batch_idx)
+            # print('batch_idx: ', batch_idx)
             self.optimizer.zero_grad()
-            print('----------model-  0  ---------------')
             losses = self.forward_sequence(sequence)
-            print('-----------  1  ---------------')
+            # print('-----------  1  ---------------')
             loss = losses['loss']
             loss.backward()
             self.optimizer.step()
-            print('111')
 
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)  # self.writer在base_trainer中定义为 TensorboardWriter
             for k, v in losses.items():
                 self.train_metrics.update(k, v.item())
-            print('222')
+
             if batch_idx % self.log_step == 0:
                 msg = 'Train Epoch: {} {}'.format(epoch, self._progress(batch_idx, self.data_loader))
                 for k, v in losses.items():
@@ -145,16 +142,20 @@ class Trainer(BaseTrainer):
             if batch_idx < self.num_previews and (epoch - 1) % self.save_period == 0:
                 with torch.no_grad():
                     self.preview(sequence, epoch, tag_prefix=f'train_{batch_idx}')
-            print('333')
+
             if batch_idx == self.len_epoch:
                 break
         log = self.train_metrics.result()
 
         print("validation")
-        if self.do_validation and epoch%10==0:
+        # if self.do_validation and epoch%10==0:
+        if self.do_validation and epoch%1==0:
+            print("===> 10 times for log.update()")
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
-                log.update(**{'val_' + k : v for k, v in val_log.items()})
+            #     log.update(**{'val_' + k : v for k, v in val_log.items()})
+
+            print("<=== 10 times for log.update()")
 
         if self.lr_scheduler is not None:
             self.lr_scheduler.step()        # 调整学习率。需要在optimizer.step()之后调用
@@ -172,23 +173,30 @@ class Trainer(BaseTrainer):
         self.model.eval()
         self.valid_metrics.reset()
         i = 0
+        print('1111')
         for batch_idx, sequence in enumerate(self.valid_data_loader):
+            print('2222')
             self.optimizer.zero_grad()
             losses = self.forward_sequence(sequence, all_losses=True)
             self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
+            print('3333')
             for k, v in losses.items():
+                print('4444')
                 self.valid_metrics.update(k, v.item())
 
             if batch_idx % self.val_log_step == 0:
+                print('5555')
                 msg = 'Valid Epoch: {} {}'.format(epoch, self._progress(batch_idx, self.valid_data_loader))
                 for k, v in losses.items():
+                    print('666')
                     msg += ' {}: {:.4f}'.format(k[:4], v.item())
                 self.logger.debug(msg)
 
             if batch_idx in self.val_preview_indices and (epoch - 1) % self.save_period == 0:
+                print('7777')
                 self.preview(sequence, epoch, tag_prefix=f'val_{i}')
                 i += 1
-
+        print('8888')
         return self.valid_metrics.result()
 
     def _progress(self, batch_idx, data_loader):

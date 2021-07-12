@@ -5,7 +5,7 @@
         "type": "E2VIDRecurrent",
         "args": {
             "unet_kwargs": {
-                "num_bins": 10,
+                "num_bins": 5,
                 "skip_type": "sum",
                 "recurrent_block_type": "convlstm",
                 "num_encoders": 3,
@@ -67,7 +67,7 @@
                     "max_length": 320,
                     "transforms": {
                         "CenterCrop": {
-                            "size": 160
+                            "size": 32
                         }
                     },
                     "num_bins": 5,
