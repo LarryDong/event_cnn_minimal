@@ -2,7 +2,7 @@
     "name": "reconstruction",
     "n_gpu": 1,
     "arch": {
-        "type": "E2VIDRecurrent",
+        "type": "FireNet",
         "args": {
             "unet_kwargs": {
                 "num_bins": 10,
@@ -46,7 +46,7 @@
                         },
                         "RandomFlip": {}
                     },
-                    "num_bins": 5
+                    "num_bins": 10
                 }
             }
         }
@@ -67,7 +67,7 @@
                     "max_length": 320,
                     "transforms": {
                         "CenterCrop": {
-                            "size": 160
+                            "size": 64
                         }
                     },
                     "num_bins": 5,

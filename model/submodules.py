@@ -8,7 +8,59 @@ class ConvLayer(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=0, activation='relu', norm=None,
                  BN_momentum=0.1):
         super(ConvLayer, self).__init__()
+        # a=1
+        # print(a.a)
+        # import pdb;pdb.set_trace()
+        # self = ConvLayer()
+        # in_channels = 10
+        # out_channels = 32
+        # kernel_size = 5
+        # stride = 1
+        # padding = 2
+        # activation = 'relu'
+        # norm = None
+        # BN_momentum = 0.1
 
+
+
+        # self = ConvLayer()
+        # in_channels = 32
+        # out_channels = 64
+        # kernel_size = 5
+        # stride = 2
+        # padding = 2
+        # activation = 'relu'
+        # norm = 'none'
+        # BN_momentum = 0.1
+
+        # in_channels = 64
+        # out_channels = 128
+        # kernel_size = 5
+        # stride = 2
+        # padding = 2
+        # activation = 'relu'
+        # norm = 'none'
+        # BN_momentum = 0.1
+
+        # self = ConvLayer()
+        # in_channels = 128
+        # out_channels = 256
+        # kernel_size = 5
+        # stride = 2
+        # padding = 2
+        # activation = 'relu'
+        # norm = 'none'
+        # BN_momentum = 0.1
+
+        # self = ConvLayer()
+        # in_channels = 32
+        # out_channels = 1
+        # kernel_size = 1
+        # stride = 1
+        # padding = 0
+        # activation = None
+        # norm = 'none'
+        # BN_momentum = 0.1
         bias = False if norm == 'BN' else True
         self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding, bias=bias)
         if activation is not None:

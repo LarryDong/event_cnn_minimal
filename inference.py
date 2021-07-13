@@ -133,9 +133,9 @@ def main(args, model):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Template')
-    parser.add_argument('--checkpoint_path', required=True, type=str, help='path to latest checkpoint (default: None)')
-    parser.add_argument('--events_file_path', required=True, type=str, help='path to events (HDF5)')
-    parser.add_argument('--output_folder', default="/tmp/output", type=str, help='where to save outputs to')
+    parser.add_argument('--checkpoint_path',default='pretrained_model/reconstruction_model.pth', type=str, help='path to latest checkpoint (default: None)')
+    parser.add_argument('--events_file_path', default='data_test/slider_depth.h5',type=str, help='path to events (HDF5)')
+    parser.add_argument('--output_folder', default="result/output", type=str, help='where to save outputs to')
     parser.add_argument('--device', default='0', type=str, help='indices of GPUs to enable')
     parser.add_argument('--is_flow', action='store_true', help='If true, save output to flow npy file')
     parser.add_argument('--update', action='store_true', help='Set this if using updated models')       # TODO: ?? what is 'updated models'
@@ -164,4 +164,27 @@ if __name__ == '__main__':
     checkpoint = torch.load(args.checkpoint_path)
     args, checkpoint = legacy_compatibility(args, checkpoint)
     model = load_model(checkpoint)
+    # print(model)
     main(args, model)
+
+
+    import os
+    import cv2
+    file_dir='result/output/'
+    file_list=[]
+    for root,dirs,files in os.walk(file_dir):
+        for file in files:
+            if os.path.splitext(file)[1] == '.png':  
+                file_list.append(os.path.join(root, file))  #获取目录下文件名列表
+    # print(file_list[0])
+    file_list.sort()
+    # print(file_list)
+    img = cv2.imread(file_list[0])
+    h,w,_ = img.shape
+    print('图片数：',len(file_list))
+    video=cv2.VideoWriter('result/video/test1.avi',cv2.VideoWriter_fourcc(*'XVID'),1,(h,w))  #定义保存视频目录名称及压缩格式，fps=10,像素为1280*720
+    for file_i in file_list:
+        img=cv2.imread(file_i)  #读取图片
+        # img=cv2.resize(img,(1280,720)) #将图片转换为1280*720
+        video.write(img)   #写入视频
+    video.release()

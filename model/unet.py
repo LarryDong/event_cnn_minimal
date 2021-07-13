@@ -255,17 +255,18 @@ class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
     Symmetric, skip connections on every encoding layer.
     """
     def __init__(self, unet_kwargs):
-        print('====> UNetRecurrent __init__')
+
         final_activation = unet_kwargs.pop('final_activation', 'none')
         # getattr，获得对象的属性值。getattr(a, 'bar2', 3)  属性 bar2 不存在，但设置了默认值
         self.final_activation = getattr(torch, final_activation, None)
         print(f'Using {self.final_activation} final activation')
         unet_kwargs['num_output_channels'] = 1
-        print('1-st, init BaseUNet')
         super().__init__(**unet_kwargs)
-        print('init BaseUNet done')
+        # import pdb;pdb.set_trace()
+        # OrderedDict([('num_bins', 10), ('skip_type', 'sum'), ('recurrent_block_type', 'convlstm'), ('num_encoders', 3), 
+        # ('base_num_channels', 32), ('num_residual_blocks', 2), ('use_upsample_conv', True), ('norm', 'none'), ('num_output_channels', 1)])
         self.head = ConvLayer(self.num_bins, self.base_num_channels,
-                            kernel_size=self.kernel_size, stride=1,
+                            kernel_size=self.kernel_size, stride=1, # kernel_size=5默认
                             padding=self.kernel_size // 2)  # N x C x H x W -> N x 32 x H x W
 
         self.encoders = nn.ModuleList()
@@ -279,7 +280,8 @@ class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
         self.decoders = self.build_decoders()
         self.pred = self.build_prediction_layer(self.num_output_channels, self.norm)
         self.states = [None] * self.num_encoders
-        print('<==== UNetRecurrent __init__ done')
+        # import pdb;pdb.set_trace()
+
 
     def forward(self, x):
         """

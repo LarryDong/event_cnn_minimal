@@ -75,7 +75,7 @@ class BaseTrainer:
         """
         Full training logic
         """
-        print('=====> train begin ......')
+
         not_improved_count = 0
         for epoch in range(self.start_epoch, self.epochs + 1):
             print('epoch: ', epoch)             # TODO:

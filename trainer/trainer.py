@@ -60,6 +60,7 @@ class Trainer(BaseTrainer):
         self.model.reset_states()
         for i, item in enumerate(sequence):
             events, image, flow = self.to_device(item)
+            # import pdb;pdb.set_trace()
             pred = self.model(events)
             for loss_ftn in self.loss_ftns:
                 loss_name = loss_ftn.__class__.__name__
@@ -109,6 +110,7 @@ class Trainer(BaseTrainer):
         self.train_metrics.reset()      # 将pd.DataFrame的内容全部设置为0
         for batch_idx, sequence in enumerate(self.data_loader):
             self.optimizer.zero_grad()
+            # import pdb;pdb.set_trace()
             losses = self.forward_sequence(sequence)
             loss = losses['loss']
             loss.backward()
@@ -133,7 +135,7 @@ class Trainer(BaseTrainer):
         log = self.train_metrics.result()
 
         print("validation")
-        if self.do_validation and epoch%10==0:
+        if self.do_validation and epoch%2==0: # 以前是10
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
                 log.update(**{'val_' + k : v for k, v in val_log.items()})
@@ -155,6 +157,7 @@ class Trainer(BaseTrainer):
         i = 0
         for batch_idx, sequence in enumerate(self.valid_data_loader):
             self.optimizer.zero_grad()
+            # import pdb;pdb.set_trace()
             losses = self.forward_sequence(sequence, all_losses=True)
             self.writer.set_step((epoch - 1) * len(self.valid_data_loader) + batch_idx, 'valid')
             for k, v in losses.items():
@@ -207,7 +210,8 @@ class Trainer(BaseTrainer):
                 output = tc_loss_ftn(i, image, pred_images[i], flows[i], output_images=True)
                 if output is not None:
                     video_tensor = make_tc_vis(output[1])
-                    self.writer.writer.add_video(f'warp_vis/tc_{tag_prefix}',
+                    # import pdb;pdb.set_trace()
+                    self.writer.add_video(f'warp_vis/tc_{tag_prefix}',
                             video_tensor, global_step=epoch, fps=2)
                     break
 

@@ -108,6 +108,7 @@ class ConfigParser:
         `object = config.init_obj('name', module, a, b=1)` is equivalent to
         `object = module.name(a, b=1)`
         """
+        
         module_name = self[name]['type']  # HDF5DataLoader
         module_args = dict(self[name]['args'])
         # 第一次执行的时候这里的self就是reconstruction.json生成的字典，name为data_loader

@@ -12,7 +12,7 @@ import json
 data_path = '/home/zhujun/Documents/data/e2vid/'
 config_path = '/home/zhujun/Documents/lenovo_dvs/event_cnn_minimal/config/'
 
-max_num = 10
+max_num = 2
 
 # 生成csv
 train_path= data_path + 'train'

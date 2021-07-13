@@ -390,7 +390,7 @@ class DynamicH5Dataset(BaseVoxelDataset):
         except OSError as err:
             print("Couldn't open {}: {}".format(data_path, err))
 
-        if self.sensor_resolution is None:
+        if self.sensor_resolution is None: # 这个就是图片的大小
             self.sensor_resolution = self.h5_file.attrs['sensor_resolution'][0:2]
         else:
             self.sensor_resolution = self.sensor_resolution[0:2]
@@ -403,6 +403,7 @@ class DynamicH5Dataset(BaseVoxelDataset):
 
         self.frame_ts = []
         for img_name in self.h5_file['images']:
+            
             self.frame_ts.append(self.h5_file['images/{}'.format(img_name)].attrs['timestamp'])
 
         data_source = self.h5_file.attrs.get('source', 'unknown')
@@ -410,7 +411,7 @@ class DynamicH5Dataset(BaseVoxelDataset):
             self.data_source_idx = data_sources.index(data_source)
         except ValueError:
             self.data_source_idx = -1
-
+        
     def find_ts_index(self, timestamp):
         idx = binary_search_h5_dset(self.h5_file['events/ts'], timestamp)
         return idx

@@ -55,69 +55,33 @@ def load_model(args, checkpoint=None, config=None):
 
 
 def main(config):
-    print("=====> in 'main'")
     logger = config.get_logger('train')
-
     # setup data_loader instances
-    print("=====> Init obj. data_loader")
+    
     data_loader = config.init_obj('data_loader', module_data)
-    '''
-    在init一个module_data(data_loader.data_loaders)对象时，读取config文件中'data_loader'的相关配置进行初始化
-    初始化时传入的可选参数和关键参数列表均为空。
-    在init_obj函数内部，首先根据传入的名字('data_loader')从config中确定type为HDF5格式，并读取了相关配置参数为module_args
-    之后对参数进行更新（及如果传入了关键参数，则更新；否则默认使用config中的全部配置）
-    之后调用getattr()(args, module_args)时，getattr()获取了module的'hdf5'属性，attr(args, module_args)相当于进行了HDF5DataLoader的初始化(__init__)
-    在HDF5DataLoader的__init__中进行了相关参数配置
-    '''
-    print("<===== Init obj. data_loader done")
-
-
-    print("=====> Init obj. valid_data_loader")
+    # import pdb;pdb.set_trace()
     valid_data_loader = config.init_obj('valid_data_loader', module_data)
-    print("<===== Init obj. valid_data_loader done")
 
-    # build model architecture, then print to console
-    # 用module_arch初始化 config 中的'arch'参数， 命名为model。module_arch是自己定义的
-    print("=====> Init architecture.")
-    print('module_arch: ', module_arch)
     model = config.init_obj('arch', module_arch)    # arch:architecture
-    ''' 这里init_obj 初始化的是module
-    module_name: E2VIDRecurrent 
-    module_args: {'unet_kwargs': OrderedDict([('num_bins', 10), ('skip_type', 'sum'),
-    ('recurrent_block_type', 'convlstm'), ('num_encoders', 3), ('base_num_channels', 32),
-    ('num_residual_blocks', 2), ('use_upsample_conv', True), ('final_activation', ''), ('norm', 'none')])}
-    最后同样，利用getattr()初始化一个E2VIDRecurrent。TODO: 目前初始化失败。
-    '''
     # logger.info(model)
-    print("<===== Init architecture done.")
-
     # init loss classes
-    print("======>  init loss classes")
     loss_ftns = [getattr(module_loss, loss)(**kwargs) for loss, kwargs in config['loss_ftns'].items()]
-    print("<======  init loss classes done")
     # 在这里getattr获取config中[loss_ftns]的属性值，即perceptual_loss和temporal_consistency_loss
-
     # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
-    print("======>  init optimizer")
     trainable_params = filter(lambda p: p.requires_grad, model.parameters())        # filter(func, iter), 保留可迭代器iter中满足func的对象
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
-    print("======>  init optimizer done")
-
-    print("======>  init Trainer")
     trainer = Trainer(model, loss_ftns, optimizer,          # TODO:
                     config=config,
                     data_loader=data_loader,
                     valid_data_loader=valid_data_loader,
                     lr_scheduler=lr_scheduler)
-    print("<======  init Trainer done")
-    print("=====> start 'trainer.train()'")
     trainer.train()
-    print("=================== traner.train() done  ===================")
+    # import pdb;pdb.set_trace()
+
 
 
 if __name__ == '__main__':
-    print("=====> in 'train'")
     args = argparse.ArgumentParser(description='PyTorch Template')
     args.add_argument('-c', '--config', default='config/reconstruction.json', type=str, help='config file path (default: config/reconstruction.json)')
     args.add_argument('-r', '--resume', default=None, type=str, help='path to latest checkpoint (default: None)')
@@ -148,19 +112,7 @@ if __name__ == '__main__':
         CustomArgs(['--rmb', '--reset_monitor_best'], type=bool, target='trainer;reset_monitor_best'),
         CustomArgs(['--vo', '--valid_only'], type=bool, target='trainer;valid_only')
     ]
-    # import pdb;pdb.set_trace()
-    # c：（continue）继续执行，直到遇到下一条断点
-    # s：（step）执行当前语句，如果本句是函数调用，则s会执行到函数的第一句
-    # n：（next）执行当前语句，如果本句是函数调用，则完整执行函数，接着指向当前执行语句的下一句。
-    # r：（return）执行当前运行函数到return,如果本句是函数调用，则s会执行到函数的第一句，如果在函数外且不是函数调用则相当于s
-    # a：（args）列出当前执行函数的参数
-    # l：（list）列出当前执行语句周围11条代码
-    # b：（break）添加断点
-    #     b 列出当前所有断点，和断点执行到统计次数
-    #     b line_no(行数)：当前脚本的line_no行添加断点
-    # tbreak：（temporary break）临时断点  在第一次执行到这个断点之后，就自动删除这个断点，用法和b一样
-    # cl：（clear）清除断点
-    #     cl lineno 清除当前脚本lineno行的断点，不太好用。。。
+
     config = ConfigParser.from_args(args, options)
     if args.parse_args().limited_memory:
         # https://github.com/pytorch/pytorch/issues/11201#issuecomment-421146936
