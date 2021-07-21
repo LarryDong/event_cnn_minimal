@@ -54,7 +54,8 @@ class Trainer(BaseTrainer):
 
     # 在_train_epoch中调用了self.forward_sequence
     def forward_sequence(self, sequence, all_losses=False):     # TODO: 还未研究
-        # Python中通过Key访问字典，当Key不存在时，会引发‘KeyError’异常。为了避免这种情况的发生，可以使用collections类中的defaultdict()方法来为字典提供默认值。
+        # Python中通过Key访问字典，当Key不存在时，会引发‘KeyError’异常。为了避免这种情况的发生，
+        # 可以使用collections类中的defaultdict()方法来为字典提供默认值。
         losses = collections.defaultdict(list)  
         # self.model 在trainer的init中的base_trainer的init中定义：self.model = model.to(self.device)
         self.model.reset_states()
@@ -106,7 +107,7 @@ class Trainer(BaseTrainer):
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
                 return {'val_' + k : v for k, v in val_log.items()}
-        self.model.train()              # TODO:
+        self.model.train()              # TODO:设置模型为训练模式
         self.train_metrics.reset()      # 将pd.DataFrame的内容全部设置为0
         for batch_idx, sequence in enumerate(self.data_loader):
             self.optimizer.zero_grad()

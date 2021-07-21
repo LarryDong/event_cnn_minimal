@@ -327,8 +327,7 @@ class BaseVoxelDataset(Dataset):
             voxel_grid = events_to_voxel_torch(xs, ys, ts, ps, self.num_bins, sensor_size=self.sensor_resolution)
         else:
             # generate voxel grid which has size 2*self.num_bins x H x W
-            voxel_grid = events_to_neg_pos_voxel_torch(xs, ys, ts, ps, self.num_bins,
-                                                       sensor_size=self.sensor_resolution)
+            voxel_grid = events_to_neg_pos_voxel_torch(xs, ys, ts, ps, self.num_bins, sensor_size=self.sensor_resolution)
             voxel_grid = torch.cat([voxel_grid[0], voxel_grid[1]], 0)
 
         voxel_grid = voxel_grid*self.hot_events_mask 
@@ -532,7 +531,6 @@ class SequenceDataset(Dataset):  # TODO:
             step_size=None, proba_pause_when_running=0.0,
             proba_pause_when_paused=0.0, normalize_image=False,
             noise_kwargs={}, hot_pixel_kwargs={}, dataset_kwargs={}):
-        # print('====> In __init__')
         self.L = sequence_length
         self.step_size = step_size if step_size is not None else self.L
         self.proba_pause_when_running = proba_pause_when_running
@@ -544,9 +542,6 @@ class SequenceDataset(Dataset):  # TODO:
         assert(self.L > 0)
         assert(self.step_size > 0)
 
-        # print('222')
-        # print('dataset_type: ', dataset_type)
-        # print(eval(dataset_type))
         # import pdb;pdb.set_trace()
         self.dataset = eval(dataset_type)(data_root, **dataset_kwargs)
         # cls = <class 'data_loader.dataset.DynamicH5Dataset'>

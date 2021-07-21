@@ -5,8 +5,3 @@ opencv-python
 tqdm
 pandas
 h5py
-
-git filter-branch --force --index-filter 'git \
-rm --cached --ignore-unmatch pretrained_model/reconstruction_model.pth' \
---prune-empty --tag-name-filter cat -- --all
- git reset df5a9fd6fd12a2bfc9bc76ea35cd327469c752e0

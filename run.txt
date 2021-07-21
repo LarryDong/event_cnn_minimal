@@ -1,0 +1,5 @@
+# 简单训练
+python train.py 
+
+# 跳转到数据集
+cd /home/zhujun/Documents/data/e2vid

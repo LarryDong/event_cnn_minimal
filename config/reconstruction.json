@@ -32,7 +32,7 @@
                 "proba_pause_when_paused": 0.9,
                 "normalize_image": false,
                 "noise_kwargs": {
-                    "noise_std": 0.1,
+                    "noise_std":0.1,
                     "noise_fraction": 1.0
                 },
                 "hot_pixel_kwargs": {
