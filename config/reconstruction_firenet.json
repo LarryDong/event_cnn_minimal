@@ -2,7 +2,7 @@
     "name": "reconstruction",
     "n_gpu": 1,
     "arch": {
-        "type": "E2VIDRecurrent",
+        "type": "FireNet",
         "args": {
             "unet_kwargs": {
                 "num_bins": 10,
@@ -20,7 +20,7 @@
     "data_loader": {
         "type": "HDF5DataLoader",
         "args": {
-            "data_file": "/home/zhujun/Documents/data/e2vid/data_paper/train.csv",
+            "data_file": "/home/zhujun/Documents/data/e2vid/data_paper_firenet/train.csv",
             "batch_size": 2,
             "shuffle": true,
             "num_workers": 0,
@@ -32,7 +32,7 @@
                 "proba_pause_when_paused": 0.9,
                 "normalize_image": false,
                 "noise_kwargs": {
-                    "noise_std":0.1,
+                    "noise_std": 0.1,
                     "noise_fraction": 1.0
                 },
                 "hot_pixel_kwargs": {
@@ -54,7 +54,7 @@
     "valid_data_loader": {
         "type": "HDF5DataLoader",
         "args": {
-            "data_file": "/home/zhujun/Documents/data/e2vid/data_paper/valid.csv",
+            "data_file": "/home/zhujun/Documents/data/e2vid/data_paper_firenet/valid.csv",
             "batch_size": 1,
             "shuffle": false,
             "num_workers": 0,
@@ -103,7 +103,7 @@
     },
     "trainer": {
         "epochs": 200,
-        "save_dir": "/home/zhujun/Documents/data/e2vid/data_paper/model",
+        "save_dir": "/home/zhujun/Documents/data/e2vid/data_paper_firenet/model",
         "save_period": 5,
         "verbosity": 2,
         "monitor": "min loss",

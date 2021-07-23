@@ -3,3 +3,40 @@ python train.py
 
 # 跳转到数据集
 cd /home/zhujun/Documents/data/e2vid
+
+# 对新数据集修改config文件 config/reconstruction.json
+python my_own_tools/generate_path_file.py 
+
+# git 提交命令
+git status
+git add .
+git commit -m "add readme.txt"
+git push origin zhujun_dev
+
+# 尝试在另外一块gpu上跑firenet
+## 首先复制文件到data_paper_firenet文件夹,为了防止读取文件时冲突才复制一份的
+## 执行命令修改config/reconstruction_firenet.json以及重新生成csv文件,防止冲突，配置文件也一并改了。。。
+## 修改generate_path_file.py并执行
+python my_own_tools/generate_path_file.py 
+## 修改gpu 模型和数据加载：base/base_trainer.py 损失函数加载：PerceptualSimilarity/models/__init__.py
+device = torch.device('cuda:1' if n_gpu_use > 0 else 'cpu')
+def __init__(self, model='net-lin', net='alex', colorspace='rgb', spatial=False, use_gpu=True, gpu_ids=[1]):
+## 开始训练，注意换一下配置文件
+args.add_argument('-c', '--config', default='config/reconstruction_firenet.json', type=str, help='config file path (default: config/reconstruction.json)')
+python train.py
+
+# 尝试继续训练firenet
+## 最新的checkpoint位置：
+/home/zhujun/Documents/data/e2vid/data_paper_firenet/model/models/reconstruction/0721_162307/checkpoint-epoch55.pth
+## 运行命令
+python train.py -c config/reconstruction_firenet.json -r /home/zhujun/Documents/data/e2vid/data_paper_firenet/model/models/reconstruction/0721_162307/checkpoint-epoch55.pth
+## 成功！！！！接着checkpoint继续训练
+
+# 尝试在服务器上继续训练e2vid
+conda activate event_cnn
+device = torch.device('cuda:2' if n_gpu_use > 0 else 'cpu')
+def __init__(self, model='net-lin', net='alex', colorspace='rgb', spatial=False, use_gpu=True, gpu_ids=[2]):
+python train.py  -c config/reconstruction.json -r /home/zhujun/Documents/data/e2vid/data_paper/model/models/reconstruction/0721_144313/checkpoint-epoch51.pth
+## 尝试将全部内存占用转移至gpu 2 但是不行，报错，暂时就这么处理吧！占着gpu 0 的1000m空间
+
+

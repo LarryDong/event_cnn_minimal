@@ -83,7 +83,7 @@ def main(config):
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser(description='PyTorch Template')
-    args.add_argument('-c', '--config', default='config/reconstruction.json', type=str, help='config file path (default: config/reconstruction.json)')
+    args.add_argument('-c', '--config', default='config/reconstruction_firenet.json', type=str, help='config file path (default: config/reconstruction.json)')
     args.add_argument('-r', '--resume', default=None, type=str, help='path to latest checkpoint (default: None)')
     args.add_argument('-d', '--device', default=None, type=str, help='indices of GPUs to enable (default: all)')
     args.add_argument('--limited_memory', default=False, action='store_true', help='prevent "too many open files" error by setting pytorch multiprocessing to "file_system".')
@@ -118,5 +118,5 @@ if __name__ == '__main__':
         # https://github.com/pytorch/pytorch/issues/11201#issuecomment-421146936
         import torch.multiprocessing
         torch.multiprocessing.set_sharing_strategy('file_system')
-
+    # import pdb;pdb.set_trace()
     main(config)

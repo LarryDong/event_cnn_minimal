@@ -45,8 +45,7 @@ class BaseTrainer:
         self.writer = TensorboardWriter(config.log_dir, self.logger, cfg_trainer['tensorboard'])
 
         if config.resume is not None:
-            self._resume_checkpoint(config.resume,
-                    reset_monitor_best=cfg_trainer.get('reset_monitor_best', False))
+            self._resume_checkpoint(config.resume, reset_monitor_best=cfg_trainer.get('reset_monitor_best', False))
 
     @abstractmethod
     def _train_epoch(self, epoch):
@@ -131,7 +130,8 @@ class BaseTrainer:
             self.logger.warning("Warning: The number of GPU\'s configured to use is {}, but only {} are available "
                                 "on this machine.".format(n_gpu_use, n_gpu))
             n_gpu_use = n_gpu
-        device = torch.device('cuda:0' if n_gpu_use > 0 else 'cpu')
+        # device = torch.device('cuda:0' if n_gpu_use > 0 else 'cpu')
+        device = torch.device('cuda:2' if n_gpu_use > 0 else 'cpu')
         list_ids = list(range(n_gpu_use))
         return device, list_ids
 

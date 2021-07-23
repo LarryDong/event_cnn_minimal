@@ -5,14 +5,17 @@ train.csv, valid.csv include all
 
 '''
 
+from math import inf
 import os
 import pandas as pd
 import json
 
-data_path = '/home/zhujun/Documents/data/e2vid/'
+# data_path = '/home/zhujun/Documents/data/e2vid/'
+# data_path = '/home/zhujun/Documents/data/e2vid/data_paper/' # 论文数据
+data_path = '/home/zhujun/Documents/data/e2vid/data_paper_firenet/'
 config_path = '/home/zhujun/Documents/lenovo_dvs/event_cnn_minimal/config/'
 
-max_num = 2
+max_num = inf
 
 # 生成csv
 train_path= data_path + 'train'
@@ -29,7 +32,8 @@ for path in [train_path, valid_path]:
     df.to_csv(path+'.csv', header=None, index=None)
 
 # 修改config
-name = 'reconstruction'
+# name = 'reconstruction'
+name = 'reconstruction_firenet'
 with open(config_path+name+'.json','r') as f:
         params = json.load(f)
         params['data_loader']['args']['data_file'] = train_path + '.csv'

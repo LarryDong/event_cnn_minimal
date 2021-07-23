@@ -45,7 +45,7 @@ class ConfigParser:
         self._log_dir = save_dir / 'log' / exper_name / run_id
 
         # make directory for saving checkpoints and log.
-        exist_ok = run_id == '' # 如果当前目录存在是否ok(抛出异常)的问题，False就是不ok，抛出异常
+        exist_ok = run_id == '' # 如果当前目录存在是否ok(抛出异常)的问题，true就是ok，False就是不ok，抛出异常
         self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
         self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
         # parents=True 中间父文件夹不存在时创建

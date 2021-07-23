@@ -136,7 +136,7 @@ class Trainer(BaseTrainer):
         log = self.train_metrics.result()
 
         print("validation")
-        if self.do_validation and epoch%2==0: # 以前是10
+        if self.do_validation and epoch%10==0: # 以前是10
             with torch.no_grad():
                 val_log = self._valid_epoch(epoch)
                 log.update(**{'val_' + k : v for k, v in val_log.items()})
