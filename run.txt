@@ -1,4 +1,5 @@
 # 简单训练
+conda activate event_cnn
 python train.py 
 
 # 跳转到数据集

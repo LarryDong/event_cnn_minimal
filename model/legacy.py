@@ -27,7 +27,12 @@ def skip_concat(x1, x2):
 
 
 def skip_sum(x1, x2):
-    return x1 + x2
+    if x1.shape == x2.shape:
+        return x1 + x2
+    else:
+        x1 = f.interpolate(x1, size=x2.size()[2:], mode='bilinear', align_corners=False)
+        return x1 + x2
+
 
 
 def identity(x1, x2=None):

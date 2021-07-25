@@ -6,9 +6,7 @@ from .submodules import \
     ConvLayer, UpsampleConvLayer, TransposedConvLayer, \
     RecurrentConvLayer, ResidualBlock, ConvLSTM, \
     ConvGRU, RecurrentResidualLayer
-
 from .model_util import *
-
 
 class BaseUNet(nn.Module):
     def __init__(self, base_num_channels, num_encoders, num_residual_blocks,
@@ -25,11 +23,10 @@ class BaseUNet(nn.Module):
         self.norm = norm
         self.num_bins = num_bins
         self.recurrent_block_type = recurrent_block_type
-
         self.encoder_input_sizes = [int(self.base_num_channels * pow(channel_multiplier, i)) for i in range(self.num_encoders)] # pow(x,y), x的y次方
         self.encoder_output_sizes = [int(self.base_num_channels * pow(channel_multiplier, i + 1)) for i in range(self.num_encoders)]
         self.max_num_channels = self.encoder_output_sizes[-1]
-        self.skip_ftn = eval('skip_' + skip_type)
+        self.skip_ftn = eval('skip_' + skip_type) # skip_type:sum
         print('Using skip: {}'.format(self.skip_ftn))
         if use_upsample_conv:
             print('Using UpsampleConvLayer (slow, but no checkerboard artifacts)')  # 反卷积有“棋盘效应”
@@ -44,7 +41,7 @@ class BaseUNet(nn.Module):
 
     def build_resblocks(self):
         self.resblocks = nn.ModuleList()
-        for i in range(self.num_residual_blocks):
+        for i in range(self.num_residual_blocks): # 2
             self.resblocks.append(ResidualBlock(self.max_num_channels, self.max_num_channels, norm=self.norm))
 
     def build_decoders(self):
@@ -64,6 +61,62 @@ class BaseUNet(nn.Module):
         return ConvLayer(self.base_num_channels if self.skip_type == 'sum' else 2 * self.base_num_channels,
                         num_output_channels, 1, activation=None, norm=norm)
 
+class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
+    """
+    Compatible with E2VID_lightweight
+    Recurrent UNet architecture where every encoder is followed by a recurrent convolutional block, such as a ConvLSTM or a ConvGRU.
+    Symmetric, skip connections on every encoding layer.
+    """
+    def __init__(self, unet_kwargs):
+        final_activation = unet_kwargs.pop('final_activation', 'none')
+        self.final_activation = getattr(torch, final_activation, None)
+        print(f'Using {self.final_activation} final activation')
+        unet_kwargs['num_output_channels'] = 1
+        super().__init__(**unet_kwargs)
+        self.head = ConvLayer(self.num_bins, self.base_num_channels,
+                            kernel_size=self.kernel_size, stride=1, # kernel_size=5默认
+                            padding=self.kernel_size // 2)  # N x C x H x W -> N x 32 x H x W
+        self.encoders = nn.ModuleList()
+        # 还真就是一个list。。。。
+        # ModuleList 就是一个储存各种模块的 list，这些模块之间没有联系，没有实现 forward 功能，
+        # 但相比于普通的 Python list，ModuleList 可以把添加到其中的模块和参数自动注册到网络上。
+        # 而Sequential 内的模块需要按照顺序排列，要保证相邻层的输入输出大小相匹配，内部 forward 功能已经实现，可以使代码更加整洁。
+        for input_size, output_size in zip(self.encoder_input_sizes, self.encoder_output_sizes):
+            self.encoders.append(
+                RecurrentConvLayer(input_size, output_size, kernel_size=self.kernel_size, stride=2,
+                                    padding=self.kernel_size // 2,
+                                    recurrent_block_type=self.recurrent_block_type, norm=self.norm))
+        self.build_resblocks()
+        self.decoders = self.build_decoders()
+        self.pred = self.build_prediction_layer(self.num_output_channels, self.norm)
+        self.states = [None] * self.num_encoders
+        # import pdb;pdb.set_trace()
+
+    def forward(self, x):
+        """
+        :param x: N x num_input_channels x H x W
+        :return: N x num_output_channels x H x W
+        """
+        # head
+        x = self.head(x)
+        head = x
+        # encoder
+        blocks = []
+        for i, encoder in enumerate(self.encoders):
+            x, state = encoder(x, self.states[i])
+            blocks.append(x)
+            self.states[i] = state
+        # residual blocks
+        for resblock in self.resblocks:
+            x = resblock(x)
+        # decoder
+        for i, decoder in enumerate(self.decoders):
+            x = decoder(self.skip_ftn(x, blocks[self.num_encoders - i - 1]))
+        # tail
+        img = self.pred(self.skip_ftn(x, head))
+        if self.final_activation is not None:
+            img = self.final_activation(img)
+        return {'image': img}
 
 class WNet(BaseUNet):
     """
@@ -131,7 +184,6 @@ class WNet(BaseUNet):
 
         return output_dict
 
-
 class UNetFlow(BaseUNet):
     """
     Recurrent UNet architecture where every encoder is followed by a recurrent convolutional block,
@@ -191,7 +243,6 @@ class UNetFlow(BaseUNet):
 
         return output_dict
 
-
 class UNetFlowNoRecur(BaseUNet):
     """
     Symmetric, skip connections on every encoding layer.
@@ -246,74 +297,6 @@ class UNetFlowNoRecur(BaseUNet):
         output_dict = {'image': img_flow[:, 0:1, :, :], 'flow': img_flow[:, 1:3, :, :]}
 
         return output_dict
-
-
-class UNetRecurrent(BaseUNet):      # TODO: Reconstruction runs HERE!
-    """
-    Compatible with E2VID_lightweight
-    Recurrent UNet architecture where every encoder is followed by a recurrent convolutional block, such as a ConvLSTM or a ConvGRU.
-    Symmetric, skip connections on every encoding layer.
-    """
-    def __init__(self, unet_kwargs):
-
-        final_activation = unet_kwargs.pop('final_activation', 'none')
-        # getattr，获得对象的属性值。getattr(a, 'bar2', 3)  属性 bar2 不存在，但设置了默认值
-        self.final_activation = getattr(torch, final_activation, None)
-        print(f'Using {self.final_activation} final activation')
-        unet_kwargs['num_output_channels'] = 1
-        super().__init__(**unet_kwargs)
-        # import pdb;pdb.set_trace()
-        # OrderedDict([('num_bins', 10), ('skip_type', 'sum'), ('recurrent_block_type', 'convlstm'), ('num_encoders', 3), 
-        # ('base_num_channels', 32), ('num_residual_blocks', 2), ('use_upsample_conv', True), ('norm', 'none'), ('num_output_channels', 1)])
-        self.head = ConvLayer(self.num_bins, self.base_num_channels,
-                            kernel_size=self.kernel_size, stride=1, # kernel_size=5默认
-                            padding=self.kernel_size // 2)  # N x C x H x W -> N x 32 x H x W
-
-        self.encoders = nn.ModuleList()
-        for input_size, output_size in zip(self.encoder_input_sizes, self.encoder_output_sizes):
-            self.encoders.append(RecurrentConvLayer(
-                input_size, output_size, kernel_size=self.kernel_size, stride=2,
-                padding=self.kernel_size // 2,
-                recurrent_block_type=self.recurrent_block_type, norm=self.norm))
-
-        self.build_resblocks()
-        self.decoders = self.build_decoders()
-        self.pred = self.build_prediction_layer(self.num_output_channels, self.norm)
-        self.states = [None] * self.num_encoders
-        # import pdb;pdb.set_trace()
-
-
-    def forward(self, x):
-        """
-        :param x: N x num_input_channels x H x W
-        :return: N x num_output_channels x H x W
-        """
-
-        # head
-        x = self.head(x)
-        head = x
-
-        # encoder
-        blocks = []
-        for i, encoder in enumerate(self.encoders):
-            x, state = encoder(x, self.states[i])
-            blocks.append(x)
-            self.states[i] = state
-
-        # residual blocks
-        for resblock in self.resblocks:
-            x = resblock(x)
-
-        # decoder
-        for i, decoder in enumerate(self.decoders):
-            x = decoder(self.skip_ftn(x, blocks[self.num_encoders - i - 1]))
-
-        # tail
-        img = self.pred(self.skip_ftn(x, head))
-        if self.final_activation is not None:
-            img = self.final_activation(img)
-        return {'image': img}
-
 
 class UNet(BaseUNet):
     """

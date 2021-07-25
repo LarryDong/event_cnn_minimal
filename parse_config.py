@@ -32,29 +32,18 @@ class ConfigParser:
         # 私有方法:实例._类名__方法名() 所以还是能够访问！！！
 
         self.resume = resume
-
-        # set save_dir where trained model and log will be saved.
         save_dir = Path(self.config['trainer']['save_dir'])
-        # self._config is self.config
-        # True
-
+        # 就是说类前面的_符号只是标志，并不是名字的一部分self._config 和 self.config等价
         exper_name = self.config['name']
         if run_id is None: # use timestamp as default run-id
             run_id = datetime.now().strftime(r'%m%d_%H%M%S')       # 接收间元组，并返回以可读字符串表示的当地时间，格式由参数format 决定。
-        self._save_dir = save_dir / 'models' / exper_name / run_id  # ASK: / 是啥意思  路径拼接的方式
+        self._save_dir = save_dir / 'models' / exper_name / run_id
         self._log_dir = save_dir / 'log' / exper_name / run_id
-
-        # make directory for saving checkpoints and log.
         exist_ok = run_id == '' # 如果当前目录存在是否ok(抛出异常)的问题，true就是ok，False就是不ok，抛出异常
-        self.save_dir.mkdir(parents=True, exist_ok=exist_ok)
+        self.save_dir.mkdir(parents=True, exist_ok=exist_ok) # parents=True 中间父文件夹不存在时创建
         self.log_dir.mkdir(parents=True, exist_ok=exist_ok)
-        # parents=True 中间父文件夹不存在时创建
-
-        # save updated config file to the checkpoint dir
-        write_json(self.config, self.save_dir / 'config.json')
-
-        # configure logging module
-        setup_logging(self.log_dir)
+        write_json(self.config, self.save_dir / 'config.json') # save updated config file to the checkpoint dir
+        setup_logging(self.log_dir) # configure logging module
         self.log_levels = {
             0: logging.WARNING,
             1: logging.INFO,
@@ -66,17 +55,23 @@ class ConfigParser:
     def from_args(cls, args, options=''):
         """
         Initialize this class from some cli arguments. Used in train, test.
+        1 将自定义的CustomArgs加入args中
+        2 args.resume判断是否重新训练还是接着之前的结果训练，并返回一个ConfigParser实例
         """
+        # cls 表示的就是类自身！！！
         for opt in options:
-            args.add_argument(*opt.flags, default=None, type=opt.type) # 也就相当于train.py中的前几句。。。。
+            args.add_argument(*opt.flags, default=None, type=opt.type) 
+            # 也就相当于train.py中的前几句。。。。但是没有用到target！！所以这也是区别！！！
+            # CustomArgs_test(flags=['--lr', '--learning_rate'], type=<class 'float'>, target='optimizer;args;lr')
+            # CustomArgs_test(flags=['--bs', '--batch_size'], type=<class 'int'>, target='data_loader;args;batch_size')
+            # CustomArgs_test(flags=['--rmb', '--reset_monitor_best'], type=<class 'bool'>, target='trainer;reset_monitor_best')
+            # CustomArgs_test(flags=['--vo', '--valid_only'], type=<class 'bool'>, target='trainer;valid_only')
             # opt 就是一个可以用属性访问的tuple子类，opt.flags为列表
-            # dir 可以查看对象的属性
-            # dir(opt)
-            # ['__add__', 。。。。。。 '_make', '_replace', 'count', 'flags', 'index', 'target', 'type']
-            # hasattr(args, "lr") 检查是否存在属性
+        # import pdb;pdb.set_trace()
         if not isinstance(args, tuple):
             args = args.parse_args()
-
+        # import pdb;pdb.set_trace()
+        # args = Namespace(bs=None, config='config/reconstruction_firenet.json', device=None, limited_memory=False, lr=None, resume=None, rmb=None, vo=None)
         if args.device is not None:
             os.environ["CUDA_VISIBLE_DEVICES"] = args.device
         if args.resume is not None:
@@ -87,48 +82,36 @@ class ConfigParser:
             assert args.config is not None, msg_no_cfg # 这个用法有意思
             resume = None
             cfg_fname = Path(args.config)
-
-        config = read_json(cfg_fname)
+        config = read_json(cfg_fname) # 将json文件加载为字典对象
         if args.config and resume:
             # update new config for fine-tuning
             config.update(read_json(args.config))
-
         # parse custom cli options into dictionary
         modification = {opt.target : getattr(args, _get_opt_name(opt.flags)) for opt in options}
-        # 第一次运行结果：
         # {'optimizer;args;lr': None, 'data_loader;args;batch_size': None, 'trainer;reset_monitor_best': None, 'trainer;valid_only': None}
-        return cls(config, resume, modification)
+        return cls(config, resume, modification) # 返回ConfigParser的一个实例
 
-    def init_obj(self, name, module, *args, **kwargs):  # *可选参数 **关键参数
-        print('--> obj name: ', name)
+    def init_obj(self, name, module, *args, **kwargs):
+        # *args表示任何多个无名参数，它是一个tuple；**kwargs表示关键字参数，它是一个dict
+        # foo(*args, **kwargs)
+        # foo('a', 1, None, a=1, b='2', c=3)  args =  ('a', 1, None) kwargs =  {'a': 1, 'c': 3, 'b': '2'}
         """
         Finds a function handle with the name given as 'type' in config, and returns the
         instance initialized with corresponding arguments given.
-
         `object = config.init_obj('name', module, a, b=1)` is equivalent to
         `object = module.name(a, b=1)`
         """
-        
-        module_name = self[name]['type']  # HDF5DataLoader
-        module_args = dict(self[name]['args'])
-        # 第一次执行的时候这里的self就是reconstruction.json生成的字典，name为data_loader
-        
+        module_name = self[name]['type']  # 类名称
+        module_args = dict(self[name]['args']) # 类参数
         assert all([k not in module_args for k in kwargs]), 'Overwriting kwargs given in config file is not allowed'
-        # all() 函数用于判断给定的可迭代参数 iterable 中的所有元素是否都为 TRUE，如果是返回 True，否则返回 False。
-        # 元素除了是 0、空、None、False 外都算 True。
+        # all() 函数用于判断给定的可迭代参数 iterable 中的所有元素是否都为 TRUE，如果是返回 True，否则返回 False。元素除了是 0、空、None、False 外都算 True。
         module_args.update(kwargs)
-        # dict.update(dict2) 把字典dict2的键/值对更新到dict里。有相同的键会直接替换成 update 的值:
-        # import pdb;pdb.set_trace()
         return getattr(module, module_name)(*args, **module_args) # getattr() 函数用于返回一个对象属性值。
-        # 第一次运行用(*args, **module_args)来初始化 class 'data_loader.data_loaders.HDF5DataLoader'
-        # 注意在使用元组将其值映射到args时使用*。 同样，**用于将字典映射到kwargs变量。
-        # args是元组，module_args是字典，不是c++中的指针！！！！
 
     def init_ftn(self, name, module, *args, **kwargs):
         """
         Finds a function handle with the name given as 'type' in config, and returns the
         function with given arguments fixed with functools.partial.
-
         `function = config.init_ftn('name', module, a, b=1)` is equivalent to
         `function = lambda *args, **kwargs: module.name(a, *args, b=1, **kwargs)`.
         """
@@ -145,7 +128,8 @@ class ConfigParser:
     def get_logger(self, name, verbosity=2):
         msg_verbosity = 'verbosity option {} is invalid. Valid options are {}.'.format(verbosity, self.log_levels.keys())
         assert verbosity in self.log_levels, msg_verbosity
-        logger = logging.getLogger(name) # 创建logger实例
+        logger = logging.getLogger(name) 
+        # 多次使用相同的名字调用 getLogger() 会一直返回相同的 Logger 对象的引用
         logger.setLevel(self.log_levels[verbosity]) # 设置日志级别，即只有日志级别大于等于设置的级别才会输出！！
         return logger
 

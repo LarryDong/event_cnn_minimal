@@ -26,19 +26,19 @@ def concatenate_subfolders(data_file, dataset, dataset_kwargs):
     return ConcatDataset(datasets)
 
 
-def concatenate_datasets(data_file, dataset_type, dataset_kwargs={}):
+def concatenate_datasets(data_file, dataset_type, sequence_kwargs={}):
     """
     Generates a dataset for each data_path specified in data_file and concatenates the datasets.
     :param data_file: A file containing a list of paths to CTI h5 files.
                       Each file is expected to have a sequence of frame_{:09d}
     :param dataset_type: Pointer to dataset class
-    :param sequence_length: Desired length of each sequence
+    :param sequence_kwargs: sequence key arguments
     :return ConcatDataset: concatenated dataset of all data_paths in data_file
     # """
     data_paths = pd.read_csv(data_file, header=None).values.flatten().tolist()
     dataset_list = []
     for data_path in tqdm(data_paths):
-        dataset_list.append(dataset_type(data_path, **dataset_kwargs))
+        dataset_list.append(dataset_type(data_path, **sequence_kwargs))
     return ConcatDataset(dataset_list)
 
 def concatenate_memmap_datasets(data_file, dataset_type, dataset_kwargs):

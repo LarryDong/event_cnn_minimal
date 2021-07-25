@@ -61,8 +61,8 @@ class Trainer(BaseTrainer):
         self.model.reset_states()
         for i, item in enumerate(sequence):
             events, image, flow = self.to_device(item)
-            # import pdb;pdb.set_trace()
             pred = self.model(events)
+            import pdb;pdb.set_trace()
             for loss_ftn in self.loss_ftns:
                 loss_name = loss_ftn.__class__.__name__
                 tmp_weight = loss_ftn.weight 

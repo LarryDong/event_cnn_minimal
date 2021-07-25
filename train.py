@@ -56,22 +56,24 @@ def load_model(args, checkpoint=None, config=None):
 
 def main(config):
     logger = config.get_logger('train')
+     # 多次使用相同的名字调用 getLogger() 会一直返回相同的 Logger 对象的引用
     # setup data_loader instances
-    
-    data_loader = config.init_obj('data_loader', module_data)
-    # import pdb;pdb.set_trace()
-    valid_data_loader = config.init_obj('valid_data_loader', module_data)
+    model = config.init_obj('arch', module_arch)
+    x = torch.rand(2,10,64,64)
+    # y = model(x)
 
-    model = config.init_obj('arch', module_arch)    # arch:architecture
+    # import pdb;pdb.set_trace()
+    data_loader = config.init_obj('data_loader', module_data)
+    valid_data_loader = config.init_obj('valid_data_loader', module_data)
     # logger.info(model)
-    # init loss classes
     loss_ftns = [getattr(module_loss, loss)(**kwargs) for loss, kwargs in config['loss_ftns'].items()]
-    # 在这里getattr获取config中[loss_ftns]的属性值，即perceptual_loss和temporal_consistency_loss
-    # build optimizer, learning rate scheduler. delete every lines containing lr_scheduler for disabling scheduler
-    trainable_params = filter(lambda p: p.requires_grad, model.parameters())        # filter(func, iter), 保留可迭代器iter中满足func的对象
+    trainable_params = filter(lambda p: p.requires_grad, model.parameters())        
+    # filter(func, iter), 保留可迭代器iter中满足func的对象
     optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
+    # torch.optim.Adam(params, lr=0.001, betas=(0.9, 0.999), eps=1e-08, weight_decay=0)
     lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
-    trainer = Trainer(model, loss_ftns, optimizer,          # TODO:
+    # torch.optim.lr_scheduler.StepLR(optimizer, step_size, gamma=0.1, last_epoch=-1)
+    trainer = Trainer(model, loss_ftns, optimizer,
                     config=config,
                     data_loader=data_loader,
                     valid_data_loader=valid_data_loader,
@@ -112,7 +114,7 @@ if __name__ == '__main__':
         CustomArgs(['--rmb', '--reset_monitor_best'], type=bool, target='trainer;reset_monitor_best'),
         CustomArgs(['--vo', '--valid_only'], type=bool, target='trainer;valid_only')
     ]
-
+    # config ConfigParser 的实例
     config = ConfigParser.from_args(args, options)
     if args.parse_args().limited_memory:
         # https://github.com/pytorch/pytorch/issues/11201#issuecomment-421146936

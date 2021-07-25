@@ -525,7 +525,7 @@ class MemMapDataset(BaseVoxelDataset):
                 print("Inferred sensor resolution: {}".format(self.sensor_resolution))
 
 
-class SequenceDataset(Dataset):  # TODO: 
+class SequenceDataset(Dataset):
     """Load sequences of time-synchronized {event tensors + frames} from a folder."""
     def __init__(self, data_root, sequence_length, dataset_type='MemMapDataset',
             step_size=None, proba_pause_when_running=0.0,
@@ -538,16 +538,10 @@ class SequenceDataset(Dataset):  # TODO:
         self.normalize_image = normalize_image
         self.noise_kwargs = noise_kwargs
         self.hot_pixel_kwargs = hot_pixel_kwargs
-
         assert(self.L > 0)
         assert(self.step_size > 0)
-
         # import pdb;pdb.set_trace()
         self.dataset = eval(dataset_type)(data_root, **dataset_kwargs)
-        # cls = <class 'data_loader.dataset.DynamicH5Dataset'>
-        # args = ('/home/zhujun/Documents/data/e2vid/train/000001409_out.h5',)
-        # kwds = {'transforms': OrderedDict([('RandomCrop', OrderedDict([('size', 112)])), ('RandomFlip', OrderedDict())]), 'num_bins': 5}
- 
         if self.L >= self.dataset.length:
             self.length = 0
         else:

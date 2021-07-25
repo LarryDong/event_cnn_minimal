@@ -1,8 +1,6 @@
-
 '''
 generate .csv file for e2vid code.
 train.csv, valid.csv include all 
-
 '''
 
 from math import inf

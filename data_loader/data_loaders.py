@@ -30,8 +30,8 @@ class HDF5DataLoader(DataLoader):
         # num_workers = 0
         # pin_memory = True
         # sequence_kwargs = OrderedDict([('sequence_length', 40),....
-
-        dataset = concatenate_datasets(data_file, SequenceDataset, sequence_kwargs)
+        # 核心在于数据集处理，dataloader还是挺普通的
+        dataset = concatenate_datasets(data_file, SequenceDataset, sequence_kwargs) 
         super().__init__(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers, pin_memory=pin_memory)
 
 

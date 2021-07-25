@@ -76,7 +76,6 @@ class ColorNet(BaseModel):
         image_bgr = merge_channels_into_color_image(reconstructions_for_each_channel)  # H x W x 3
         return {'image': image_bgr}
 
-
 class WFlowNet(BaseModel):
     """
     Recurrent, UNet-like architecture where each encoder is followed by a ConvLSTM or ConvGRU.
@@ -109,7 +108,6 @@ class WFlowNet(BaseModel):
         output_dict = self.wnet.forward(event_tensor)
         return output_dict
 
-
 class FlowNet(BaseModel):
     """
     Recurrent, UNet-like architecture where each encoder is followed by a ConvLSTM or ConvGRU.
@@ -140,7 +138,6 @@ class FlowNet(BaseModel):
         output_dict = self.unetflow.forward(event_tensor)
         return output_dict
 
-
 class FlowNetNoRecur(BaseModel):
     """
     UNet-like architecture without recurrent units
@@ -163,7 +160,6 @@ class FlowNetNoRecur(BaseModel):
         output_dict = self.unetflow.forward(event_tensor)
         return output_dict
 
-
 class E2VIDRecurrent(BaseModel):            # TODO: E2VID 从这里开始
     """
     Compatible with E2VID_lightweight
@@ -171,11 +167,9 @@ class E2VIDRecurrent(BaseModel):            # TODO: E2VID 从这里开始
     """
     def __init__(self, unet_kwargs):
         super().__init__()
-        
-        self.num_bins = unet_kwargs['num_bins']  # legacy
-        self.num_encoders = unet_kwargs['num_encoders']  # legacy
+        self.num_bins = unet_kwargs['num_bins']  # 通道数
+        self.num_encoders = unet_kwargs['num_encoders']  # 编码器数量
         self.unetrecurrent = UNetRecurrent(unet_kwargs)
-
         
     @property
     def states(self):
